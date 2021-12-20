@@ -16,6 +16,10 @@ db_name="covid"
 
 ## Development
 
+### Docker
+
+A docker-compose is available to run the database. It comes with the admiror interface
+
 ### Import dataset
 
 First you'll need to download the necessary data.
