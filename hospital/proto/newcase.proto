@@ -1,0 +1,21 @@
+syntax = "proto3"
+package newcase;
+
+service NewCase {
+    rpc getNewCaseByDepartment(CaseInput) returns (NewCases);
+}
+
+message CaseInput {
+    string department = 1;
+    optional int32 day = 2;
+    int32 month = 3;
+    int32 year = 4;
+}
+
+message NewCase {
+    string date = 1;
+    string new_entry_hospital = 2;
+    string new_entry_icu = 3;
+    string death = 4;
+    string healed = 5;
+}

@@ -6,9 +6,10 @@ use tonic::{
 };
 use futures::TryStreamExt;
 use care::care_status_server::CareStatus;
-use care::{CareStatusPayload, CareStatusInput, CareStatusOutput, CareStatusMonthInput};
-use chrono::{NaiveDate, Datelike};
+use care::{CareStatusPayload, CareStatusInput, CareStatusOutput};
+use chrono::NaiveDate;
 use db::PGPool;
+use super::err::MaskErr;
 
 pub mod care {
     tonic::include_proto!("hospital");
@@ -64,11 +65,16 @@ impl CareStatus for CareService {
     ) -> Result<Response<CareStatusOutput>, Status> {
         let input = request.into_inner();
         // check date validity
-        if let Err(_) = NaiveDate::parse_from_str(&input.date, "%Y-%m-%d") {
-            return Err(Status::new(Code::InvalidArgument, "Date is malformated. Please use a date like 2021-12-19"));
+        let (date, has_day) = match input.day {
+            Some(day) => (format!("{}-{}-{}", input.year, input.month, day), true),
+            None => (format!("{}-{}", input.year, input.month), false)
+        };
+
+        if date_valid(&date, has_day).is_err() {
+            return Err(Status::new(Code::InvalidArgument, "The date is invalid"));
         }
 
-        let reply = match get_cases_by_day_and_region(&self.pool, input).await {
+        let reply = match get_cases_by_day_and_region(&self.pool, date, input.region).await {
             Ok(cases) => CareStatusOutput { cases },
             Err(err) => {
                 error!("fetch hospitalization {:?}", err);
@@ -78,61 +84,40 @@ impl CareStatus for CareService {
 
         Ok(Response::new(reply))
     }
-
-    async fn get_status_by_month_for_region(
-        &self,
-        request: Request<CareStatusMonthInput>
-    ) -> Result<Response<CareStatusOutput>, Status> {
-        let input = request.into_inner();
-        let date = NaiveDate::parse_from_str(&format!("{}-{}-{}", input.year, input.month, "1"), "%Y-%m-%d")
-            .map_err(|_| Status::new(Code::InvalidArgument, "Either invalid month or year"))?;
-
-        let formatted_date = format!("{}-{}%", date.year(), date.month());
-        let reply = match get_cases_by_month_by_region(&self.pool, formatted_date, input.region).await {
-            Ok(cases) => CareStatusOutput { cases },
-            Err(err) => {
-                error!("fetch hospitalization {:?}", err);
-                return Err(Status::new(Code::Internal, "Unable to retrieve hospitalization cases by month"));
-            }
-        };
-
-        Ok(Response::new(reply))
-    }
 }
+
+/// Check whenever the date is valid
+/// 
+/// # Arguments
+/// * `date` - &str
+/// * `is_day` - bool
+fn date_valid(date: &str, is_day: bool) -> Result<(), MaskErr> {
+    let updated_date = match is_day {
+        true => date.into(),
+        false => format!("{}-1", date)
+    };
+
+    if let Err(err) = NaiveDate::parse_from_str(&updated_date, "%Y-%m-%d") {
+        return Err(MaskErr::from(err));
+    }
+
+    Ok(())
+} 
 
 /// Query the database to return the hospitalization rate for a day and a region
 /// 
 /// # Arguments
 /// * `pool` - &PGPool
 /// * `input` - CareStatusInput
-async fn get_cases_by_day_and_region(pool: &PGPool, input: CareStatusInput) -> Result<Vec<CareStatusPayload>, Box<dyn std::error::Error>> {
+async fn get_cases_by_day_and_region(pool: &PGPool, date: String, region: i32) -> Result<Vec<CareStatusPayload>, MaskErr> {
     let mut cases = Vec::new();
-    let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM hospitalization WHERE jour = $1 AND reg = $2")
-        .bind(input.date)
-        .bind(input.region)
-        .fetch(pool);
+    let date_like = format!("{}%", date);
 
-    while let Some(row) = stream.try_next().await? {
-        let case = CareStatusPayload::from(row);
-        cases.push(case);
-    }
-
-    Ok(cases)
-}
-
-/// Query the database to return the hospitalization rate for a month and a region
-/// 
-/// # Arguments
-/// * `pool` - &PGPool
-/// * `date` - String
-/// * `region` - i32
-async fn get_cases_by_month_by_region(pool: &PGPool, date: String, region: i32) -> Result<Vec<CareStatusPayload>, Box<dyn std::error::Error>> {
-    let mut cases = Vec::new();
     let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM hospitalization WHERE jour LIKE $1 AND reg = $2")
-        .bind(date)
+        .bind(date_like)
         .bind(region)
         .fetch(pool);
-    
+
     while let Some(row) = stream.try_next().await? {
         let case = CareStatusPayload::from(row);
         cases.push(case);

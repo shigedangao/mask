@@ -5,6 +5,7 @@ use tonic::transport::Server;
 extern crate log;
 
 mod hospital;
+mod err;
 
 use hospital::care::care_status_server::CareStatusServer;
 use hospital::CareService;
