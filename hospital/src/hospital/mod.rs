@@ -1,16 +1,15 @@
-use tonic::{
-    Request,
-    Response,
-    Status,
-    Code
-};
+use tonic::{Request, Response, Status, Code};
 use futures::TryStreamExt;
 use care::care_status_server::CareStatus;
 use care::{CareStatusPayload, CareStatusInput, CareStatusOutput};
-use chrono::NaiveDate;
 use db::PGPool;
+use std::sync::Arc;
+use super::util;
 use super::err::MaskErr;
 
+pub mod case;
+
+// import generated struct by tonic
 pub mod care {
     tonic::include_proto!("hospital");
 }
@@ -18,7 +17,7 @@ pub mod care {
 // Hold a pool of connection
 #[derive(Debug)]
 pub struct CareService {
-    pub pool: PGPool
+    pub pool: Arc<PGPool>
 }
 
 #[derive(sqlx::FromRow, Debug)]
@@ -37,7 +36,7 @@ struct QueryResult {
 
 impl From<QueryResult> for CareStatusPayload {
     fn from(q: QueryResult) -> Self {
-        CareStatusPayload {
+        Self {
             region: q.reg.unwrap_or_default(),
             age: q.cl_age90.unwrap_or_default(),
             hospitalization: q.hosp.unwrap_or_default(),
@@ -52,9 +51,19 @@ impl From<QueryResult> for CareStatusPayload {
     }
 }
 
+impl util::Date for CareStatusInput {
+    fn build_date(&self) -> (String, bool) {
+        match self.day.to_owned() {
+            Some(day) => (format!("{}-{}-{}", self.year, self.month, day), true),
+            None => (format!("{}-{}", self.year, self.month), false)
+        }
+    }
+}
+
 #[tonic::async_trait]
 impl CareStatus for CareService {
     /// Return the number of case in hospital for a date and a region
+    /// The day is optional. Hence we can query either per day or per month
     /// 
     /// # Arguments
     /// * `&self`
@@ -64,15 +73,12 @@ impl CareStatus for CareService {
         request: Request<CareStatusInput>
     ) -> Result<Response<CareStatusOutput>, Status> {
         let input = request.into_inner();
-        // check date validity
-        let (date, has_day) = match input.day {
-            Some(day) => (format!("{}-{}-{}", input.year, input.month, day), true),
-            None => (format!("{}-{}", input.year, input.month), false)
+        let date = match util::is_date_valid(&input) {
+            Ok(date) => date,
+            Err(_) => {
+                return Err(Status::new(Code::InvalidArgument, "The date is invalid"))
+            }
         };
-
-        if date_valid(&date, has_day).is_err() {
-            return Err(Status::new(Code::InvalidArgument, "The date is invalid"));
-        }
 
         let reply = match get_cases_by_day_and_region(&self.pool, date, input.region).await {
             Ok(cases) => CareStatusOutput { cases },
@@ -86,25 +92,7 @@ impl CareStatus for CareService {
     }
 }
 
-/// Check whenever the date is valid
-/// 
-/// # Arguments
-/// * `date` - &str
-/// * `is_day` - bool
-fn date_valid(date: &str, is_day: bool) -> Result<(), MaskErr> {
-    let updated_date = match is_day {
-        true => date.into(),
-        false => format!("{}-1", date)
-    };
-
-    if let Err(err) = NaiveDate::parse_from_str(&updated_date, "%Y-%m-%d") {
-        return Err(MaskErr::from(err));
-    }
-
-    Ok(())
-} 
-
-/// Query the database to return the hospitalization rate for a day and a region
+/// Query the database to get the hospitalization rate for a day and a region
 /// 
 /// # Arguments
 /// * `pool` - &PGPool

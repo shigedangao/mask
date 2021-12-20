@@ -1,7 +1,7 @@
-syntax = "proto3"
+syntax = "proto3";
 package newcase;
 
-service NewCase {
+service CaseService {
     rpc getNewCaseByDepartment(CaseInput) returns (NewCases);
 }
 
@@ -14,8 +14,12 @@ message CaseInput {
 
 message NewCase {
     string date = 1;
-    string new_entry_hospital = 2;
-    string new_entry_icu = 3;
-    string death = 4;
-    string healed = 5;
+    int64 new_entry_hospital = 2;
+    int64 new_entry_icu = 3;
+    int64 death = 4;
+    int64 healed = 5;
+}
+
+message NewCases {
+    repeated NewCase cases = 1;
 }
