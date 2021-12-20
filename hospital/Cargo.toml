@@ -15,6 +15,7 @@ env_logger = "0.9"
 sqlx = { version = "0.5", features = [ "runtime-tokio-native-tls" , "postgres" ] }
 db = { path = "../db" }
 futures = "0.3"
+chrono = "0.4"
 
 [build-dependencies]
 tonic-build = "0.6"

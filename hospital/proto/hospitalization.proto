@@ -4,11 +4,18 @@ package hospital;
 // Get the status by region and by day
 service CareStatus {
     rpc getStatusByRegion(CareStatusInput) returns (CareStatusOutput);
+    rpc getStatusByMonthForRegion(CareStatusMonthInput) returns (CareStatusOutput);
 }
 
 message CareStatusInput {
     string date = 1;
     int32 region = 2;
+}
+
+message CareStatusMonthInput {
+    int32 month = 1;
+    int32 year = 2;
+    int32 region = 3;
 }
 
 message CareStatusPayload {
@@ -21,6 +28,7 @@ message CareStatusPayload {
     optional double different_care_services = 7;
     optional double conventional_care = 8;
     optional double other_care_district = 9;
+    string day = 10;
 }
 
 message CareStatusOutput {
