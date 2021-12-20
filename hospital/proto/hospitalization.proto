@@ -1,0 +1,28 @@
+syntax = "proto3";
+package hospital;
+
+// Get the status by region and by day
+service CareStatus {
+    rpc getStatusByRegion(CareStatusInput) returns (CareStatusOutput);
+}
+
+message CareStatusInput {
+    string date = 1;
+    int32 region = 2;
+}
+
+message CareStatusPayload {
+    int64 region = 1;
+    int64 age = 2;
+    int64 hospitalization = 3;
+    int64 icu = 4;
+    int64 healed = 5;
+    int64 death = 6;
+    optional double different_care_services = 7;
+    optional double conventional_care = 8;
+    optional double other_care_district = 9;
+}
+
+message CareStatusOutput {
+    repeated CareStatusPayload cases = 1;
+}

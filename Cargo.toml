@@ -1,17 +1,6 @@
-[package]
-name = "mask"
-version = "0.1.0"
-edition = "2021"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-tonic = "0.6"
-prost = "0.9"
-tokio = { version = "1.15", features = ["full"] }
-color-eyre = "0.5"
-log = "0.4"
-env_logger = "0.9"
-
-[build-dependencies]
-tonic-build = "0.6"
+members = [
+    "hospital",
+    "db"
+]

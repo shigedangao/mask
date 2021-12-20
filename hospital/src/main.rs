@@ -25,11 +25,16 @@ fn setup() -> Result<()> {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     setup()?;
 
+    info!("Connecting to the database");
+    let db_pool = db::connect("config.toml").await?;
+
     info!("Server is running on port 9000");
     // setup the server
     let addr = "[::1]:9000".parse()?;
     Server::builder()
-        .add_service(CareStatusServer::new(CareService::default()))
+        .add_service(CareStatusServer::new(CareService{
+            pool: db_pool
+        }))
         .serve(addr)
         .await?;
 
