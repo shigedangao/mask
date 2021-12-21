@@ -100,3 +100,62 @@ async fn get_new_cases_by_department(pool: &PGPool, date: String, department: St
     
     Ok(cases)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn expect_to_query_new_cases() {
+        let pool = db::connect("config.toml").await.unwrap();
+        let res = get_new_cases_by_department(
+            &pool,
+            "2021-12-12".to_owned(),
+            "77".to_owned()
+        ).await;
+
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn expect_grpc_to_return_response() {
+        let pool = db::connect("config.toml").await.unwrap();
+        let pool_arc = Arc::new(pool);
+        let case_service = CaseServiceHandle {
+            pool: Arc::clone(&pool_arc)
+        };
+
+        let input = CaseInput {
+            day: Some("12".to_owned()),
+            month: "12".to_owned(),
+            year: 2021,
+            department: "77".to_owned()
+        };
+
+        let request = Request::new(input);
+        let res = case_service.get_new_case_by_department(request).await;
+
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn expect_grpc_to_return_error() {
+        let pool = db::connect("config.toml").await.unwrap();
+        let pool_arc = Arc::new(pool);
+        let case_service = CaseServiceHandle {
+            pool: Arc::clone(&pool_arc)
+        };
+
+        let input = CaseInput {
+            day: Some("50".to_owned()),
+            month: "12".to_owned(),
+            year: 2021,
+            department: "77".to_owned()
+        };
+
+        let request = Request::new(input);
+        let res = case_service.get_new_case_by_department(request).await;
+
+        assert!(res.is_err());
+    }
+}

@@ -68,7 +68,7 @@ impl CareStatus for CareService {
     /// # Arguments
     /// * `&self`
     /// * `request` - Request<CareStatusInput>
-    async fn get_status_by_region(
+    async fn get_hospital_status_by_region(
         &self,
         request: Request<CareStatusInput>
     ) -> Result<Response<CareStatusOutput>, Status> {
@@ -112,4 +112,63 @@ async fn get_cases_by_day_and_region(pool: &PGPool, date: String, region: i32) -
     }
 
     Ok(cases)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn expect_to_query_hospitalization_rate() {
+        let pool = db::connect("config.toml").await.unwrap();
+        let res = get_cases_by_day_and_region(
+            &pool, 
+            "2021-12-12".to_owned(), 
+            11
+        ).await;
+
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn expect_grpc_to_return_response() {
+        let pool = db::connect("config.toml").await.unwrap();
+        let pool_arc = Arc::new(pool);
+        let care_service = CareService {
+            pool: Arc::clone(&pool_arc)
+        };
+
+        let input = CareStatusInput {
+            day: Some("12".to_owned()),
+            month: "12".to_owned(),
+            year: 2021,
+            region: 11 
+        };
+
+        let request = Request::new(input);
+        let res = care_service.get_hospital_status_by_region(request).await;
+
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn expect_grpc_to_return_error() {
+        let pool = db::connect("config.toml").await.unwrap();
+        let pool_arc = Arc::new(pool);
+        let care_service = CareService {
+            pool: Arc::clone(&pool_arc)
+        };
+
+        let input = CareStatusInput {
+            day: None,
+            month: "32".to_owned(),
+            year: 2021,
+            region: 11 
+        };
+
+        let request = Request::new(input);
+        let res = care_service.get_hospital_status_by_region(request).await;
+
+        assert!(res.is_err());
+    }
 }

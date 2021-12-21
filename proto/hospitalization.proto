@@ -3,7 +3,7 @@ package hospital;
 
 // Get the status by region and by day
 service CareStatus {
-    rpc getStatusByRegion(CareStatusInput) returns (CareStatusOutput);
+    rpc getHospitalStatusByRegion(CareStatusInput) returns (CareStatusOutput);
 }
 
 message CareStatusInput {

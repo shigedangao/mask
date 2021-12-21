@@ -16,8 +16,19 @@ use hospital::case::CaseServiceHandle;
 
 // Setup the logging library
 fn setup() -> Result<()> {
+    // set RUST_LOG based on the environment variable
+    match std::env::var("mode") {
+        Ok(res) => {
+            if res == "prod" {
+                std::env::set_var("RUST_LOG", "warn");
+            } else {
+                std::env::set_var("RUST_LOG", "info");
+            }
+        },
+        Err(_) => std::env::set_var("RUST_LOG", "info")
+    }
+
     // set environment variable for log debugging 
-    std::env::set_var("RUST_LOG", "INFO");
     std::env::set_var("RUST_BACKTRACE", "1");
 
     color_eyre::install()?;
