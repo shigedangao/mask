@@ -7,8 +7,8 @@ service CaseService {
 
 message CaseInput {
     string department = 1;
-    optional int32 day = 2;
-    int32 month = 3;
+    optional string day = 2;
+    string month = 3;
     int32 year = 4;
 }
 
