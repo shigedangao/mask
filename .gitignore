@@ -1,2 +1,4 @@
 /target
 /hospital/config.toml
+/graphie/node_modules
+/graphie/dist
