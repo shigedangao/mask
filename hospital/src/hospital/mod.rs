@@ -120,7 +120,7 @@ mod tests {
 
     #[tokio::test]
     async fn expect_to_query_hospitalization_rate() {
-        let pool = db::connect("config.toml").await.unwrap();
+        let pool = db::connect("../config.toml").await.unwrap();
         let res = get_cases_by_day_and_region(
             &pool, 
             "2021-12-12".to_owned(), 
@@ -132,7 +132,7 @@ mod tests {
 
     #[tokio::test]
     async fn expect_grpc_to_return_response() {
-        let pool = db::connect("config.toml").await.unwrap();
+        let pool = db::connect("../config.toml").await.unwrap();
         let pool_arc = Arc::new(pool);
         let care_service = CareService {
             pool: Arc::clone(&pool_arc)
@@ -153,7 +153,7 @@ mod tests {
 
     #[tokio::test]
     async fn expect_grpc_to_return_error() {
-        let pool = db::connect("config.toml").await.unwrap();
+        let pool = db::connect("../config.toml").await.unwrap();
         let pool_arc = Arc::new(pool);
         let care_service = CareService {
             pool: Arc::clone(&pool_arc)

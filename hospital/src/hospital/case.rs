@@ -107,7 +107,7 @@ mod tests {
 
     #[tokio::test]
     async fn expect_to_query_new_cases() {
-        let pool = db::connect("config.toml").await.unwrap();
+        let pool = db::connect("../config.toml").await.unwrap();
         let res = get_new_cases_by_department(
             &pool,
             "2021-12-12".to_owned(),
@@ -119,7 +119,7 @@ mod tests {
 
     #[tokio::test]
     async fn expect_grpc_to_return_response() {
-        let pool = db::connect("config.toml").await.unwrap();
+        let pool = db::connect("../config.toml").await.unwrap();
         let pool_arc = Arc::new(pool);
         let case_service = CaseServiceHandle {
             pool: Arc::clone(&pool_arc)
@@ -140,7 +140,7 @@ mod tests {
 
     #[tokio::test]
     async fn expect_grpc_to_return_error() {
-        let pool = db::connect("config.toml").await.unwrap();
+        let pool = db::connect("../config.toml").await.unwrap();
         let pool_arc = Arc::new(pool);
         let case_service = CaseServiceHandle {
             pool: Arc::clone(&pool_arc)

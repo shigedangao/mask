@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     setup()?;
 
     info!("Connecting to the database");
-    let db_pool = db::connect("config.toml").await?;
+    let db_pool = db::connect("../config.toml").await?;
     let db_handle = Arc::new(db_pool); 
 
     info!("Server is running on port 9000");

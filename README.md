@@ -20,14 +20,24 @@ db_name="covid"
 
 A docker-compose is available to run the database. It comes with the admiror interface
 
-### Import dataset
+### Import dataset manually
 
-First you'll need to download the necessary data.
+You can manually import the dataset by downloading the CSV files from these links below:
 
-- [Hospital cases by age](https://www.data.gouv.fr/fr/datasets/r/08c18e08-6780-452d-9b8c-ae244ad529b3)
+- [Hospital cases by age by region](https://www.data.gouv.fr/fr/datasets/r/08c18e08-6780-452d-9b8c-ae244ad529b3)
 - [Hospital new case](https://www.data.gouv.fr/fr/datasets/r/6fadff46-9efd-4c53-942a-54aca783c30c)
 
-You can feed the database by running the `import.py` file
+### Import dataset automatically
+
+A small `import.py` script can be used to import automatically the dataset into the database. The database can be configured by using the `config.toml` file. The `config.toml` file need to have this configuration:
+
+```toml
+db_username="fox"
+db_password="flyingfox"
+db_host="localhost"
+db_port="5500"
+db_name="covid"
+```
 
 ### Run the hospital service
 
