@@ -1,5 +1,0 @@
-db_username="fox"
-db_password="flyingfox"
-db_host="localhost"
-db_port="5500"
-db_name="covid"
