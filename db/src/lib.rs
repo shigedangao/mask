@@ -88,7 +88,7 @@ fn build_dev_database_uri(filepath: &str) -> Result<String, DBError> {
 /// * `filepath` - &str
 fn get_connection_uri(filepath: &str) -> Result<String, DBError> {
     if let Ok(mode) = std::env::var("rust_env") {
-        if mode != "prod" {
+        if mode == "prod" {
             return build_production_database_uri();
         }
     }
