@@ -17,7 +17,7 @@ use hospital::case::CaseServiceHandle;
 // Setup the logging library
 fn setup() -> Result<()> {
     // set RUST_LOG based on the environment variable
-    match std::env::var("mode") {
+    match std::env::var("rust_env") {
         Ok(res) => {
             if res == "prod" {
                 std::env::set_var("RUST_LOG", "warn");
