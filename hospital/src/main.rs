@@ -1,5 +1,5 @@
 use color_eyre::eyre::Result;
-use tonic::transport::Server;
+use tonic::transport::{Server, Identity, ServerTlsConfig};
 use std::sync::Arc;
 
 #[macro_use]
@@ -43,12 +43,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Connecting to the database");
     let db_pool = db::connect("../config.toml").await?;
-    let db_handle = Arc::new(db_pool); 
+    let db_handle = Arc::new(db_pool);
+    
+    // load tls certificate
+    let cert = tokio::fs::read("../keys/server-cert.pem").await?;
+    let key = tokio::fs::read("../keys/server-key.key").await?;
+
+    let identity = Identity::from_pem(cert, key);
 
     info!("Server is running on port 9000");
     // setup the server
-    let addr = "[::1]:9000".parse()?;
+    let addr = "127.0.0.1:9000".parse()?;
     Server::builder()
+        .tls_config(ServerTlsConfig::new().identity(identity))?
         .add_service(CareStatusServer::new(CareService{
             pool: Arc::clone(&db_handle)
         }))

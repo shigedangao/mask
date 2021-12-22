@@ -3,3 +3,7 @@
 /graphie/node_modules
 /graphie/dist
 config.toml
+keys/*.pem
+keys/*.srl
+keys/*.key
+gen.sh
