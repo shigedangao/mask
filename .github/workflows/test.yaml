@@ -27,7 +27,7 @@ jobs:
       - name: import database
         run: pip install -r requirements.txt
       - name: prepare database
-        run: py3 import.py
+        run: python3 import.py
         env:
           db_username: $DB_USER
           db_password: $DB_PASSWORD
