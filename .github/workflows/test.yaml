@@ -1,0 +1,36 @@
+name: tests
+
+on: [push]
+
+env:
+  DB_PASSWORD: flyingfox
+  DB_USER: fox
+  DB_NAME: covid  
+
+jobs:
+  tests:
+    runs-on: ubuntu-20.04
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: $DB_PASSWORD
+          POSTGRES_USER: $DB_USER
+          POSTGRES_DB: $DB_NAME
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+      - name: import database
+        run: pip install -r requirements.txt
+      - name: prepare database
+        run: py import.py
+        env:
+          db_username: $DB_USER
+          db_password: $DB_PASSWORD
+          db_host: postgres
+          db_port: 5432
+          db_name: $DB_NAME
