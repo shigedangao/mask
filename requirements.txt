@@ -2,3 +2,4 @@ pandas==1.3.5
 SQLAlchemy==1.4.28
 toml==0.10.0
 wget==3.2
+psycopg2==2.9.2
