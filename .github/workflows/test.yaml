@@ -46,4 +46,13 @@ jobs:
           db_host: localhost
           db_port: 5432
           db_name: $DB_NAME
-
+      - name: test pcr services
+        working-directory: pcr
+        run: cargo build && cargo test
+        env:
+          rust_env: prod
+          db_username: $DB_USER
+          db_password: $DB_PASSWORD
+          db_host: localhost
+          db_port: 5432
+          db_name: $DB_NAME
