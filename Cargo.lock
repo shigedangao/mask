@@ -771,10 +771,7 @@ dependencies = [
 name = "mask"
 version = "0.1.0"
 dependencies = [
- "chrono",
- "color-eyre",
  "db",
- "env_logger",
  "futures",
  "log",
  "prost",
@@ -782,6 +779,7 @@ dependencies = [
  "tokio",
  "tonic",
  "tonic-build",
+ "utils",
 ]
 
 [[package]]
@@ -1001,6 +999,21 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "winapi",
+]
+
+[[package]]
+name = "pcr"
+version = "0.1.0"
+dependencies = [
+ "db",
+ "futures",
+ "log",
+ "prost",
+ "sqlx",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "utils",
 ]
 
 [[package]]
@@ -1913,6 +1926,15 @@ dependencies = [
  "idna",
  "matches",
  "percent-encoding",
+]
+
+[[package]]
+name = "utils"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "color-eyre",
+ "env_logger",
 ]
 
 [[package]]

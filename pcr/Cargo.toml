@@ -1,5 +1,5 @@
 [package]
-name = "mask"
+name = "pcr"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,12 +8,12 @@ edition = "2021"
 [dependencies]
 tonic = { version = "0.6", features = ["default", "tls"] }
 prost = "0.9"
-tokio = { version = "1.15", features = ["full"] }
 log = "0.4"
+tokio = { version = "1.15", features = ["full"] }
 sqlx = { version = "0.5", features = [ "runtime-tokio-native-tls" , "postgres" ] }
 db = { path = "../db" }
-futures = "0.3"
 utils = { path = "../utils" }
+futures = "0.3"
 
 [build-dependencies]
 tonic-build = "0.6"

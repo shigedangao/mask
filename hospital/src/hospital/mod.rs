@@ -4,8 +4,8 @@ use care::care_status_server::CareStatus;
 use care::{CareStatusPayload, CareStatusInput, CareStatusOutput};
 use db::PGPool;
 use std::sync::Arc;
-use super::util;
 use super::err::MaskErr;
+use utils::Date;
 
 pub mod case;
 
@@ -51,12 +51,17 @@ impl From<QueryResult> for CareStatusPayload {
     }
 }
 
-impl util::Date for CareStatusInput {
-    fn build_date(&self) -> (String, bool) {
-        match self.day.to_owned() {
-            Some(day) => (format!("{}-{}-{}", self.year, self.month, day), true),
-            None => (format!("{}-{}", self.year, self.month), false)
-        }
+impl Date for CareStatusInput {
+    fn get_year(&self) -> i32 {
+        self.year
+    }
+
+    fn get_month(&self) -> String {
+        self.month.clone()
+    }
+
+    fn get_day(&self) -> Option<String> {
+        self.day.clone()
     }
 }
 
@@ -73,9 +78,9 @@ impl CareStatus for CareService {
         request: Request<CareStatusInput>
     ) -> Result<Response<CareStatusOutput>, Status> {
         let input = request.into_inner();
-        let date = match util::is_date_valid(&input) {
-            Ok(date) => date,
-            Err(_) => {
+        let date = match input.build_date() {
+            Some(date) => date,
+            None => {
                 return Err(Status::new(Code::InvalidArgument, "The date is invalid"))
             }
         };

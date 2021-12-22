@@ -1,0 +1,29 @@
+syntax = "proto3";
+package pcr;
+
+service PcrService {
+    rpc getPcrTestMadeByRegion(PcrInput) returns (PcrOutput);
+}
+
+message PcrInput {
+    optional string day = 1;
+    string month = 2;
+    int32 year = 3;
+    int32 region = 4;
+}
+
+message PcrResult {
+    int64 region = 1;
+    string day = 2;
+    double population_by_region = 3;
+    int64 positive_pcr_test_male = 4;
+    int64 positive_pcr_test_female = 5;
+    int64 age = 6;
+    double population_male = 7;
+    double population_female = 8;
+    int64 total_positive_pcr_test = 9;
+}
+
+message PcrOutput {
+    repeated PcrResult pcr = 1;
+}

@@ -5,8 +5,7 @@ use std::sync::Arc;
 use futures::TryStreamExt;
 use db::PGPool;
 use crate::err::MaskErr;
-
-use super::util;
+use utils::Date;
 
 // import generated struct by tonic
 pub mod cases {
@@ -38,12 +37,17 @@ impl From<QueryResult> for NewCase {
     }
 }
 
-impl util::Date for CaseInput {
-    fn build_date(&self) -> (String, bool) {
-        match self.day.to_owned() {
-            Some(day) => (format!("{}-{}-{}", self.year, self.month, day), true),
-            None => (format!("{}-{}", self.year, self.month), false)
-        }
+impl Date for CaseInput {
+    fn get_year(&self) -> i32 {
+        self.year
+    }
+
+    fn get_month(&self) -> String {
+        self.month.clone()
+    }
+
+    fn get_day(&self) -> Option<String> {
+        self.day.clone()
     }
 }
 
@@ -60,9 +64,9 @@ impl CaseService for CaseServiceHandle {
         request: Request<CaseInput>
     ) -> Result<Response<NewCases>, Status> {
         let input = request.into_inner();
-        let date = match util::is_date_valid(&input) {
-            Ok(date) => date,
-            Err(_) => {
+        let date = match input.build_date() {
+            Some(date) => date,
+            None => {
                 return Err(Status::new(Code::InvalidArgument, "The date is invalid"))
             }
         };        

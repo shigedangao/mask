@@ -51,9 +51,17 @@ def import_hospital_new_cases():
   )
   import_csv_to_sql('hospitalization_new_case.csv', 'cases')
 
+def import_pcr_test_per_region():
+  download_csv(
+    'https://www.data.gouv.fr/fr/datasets/r/ad09241e-52fa-4be8-8298-e5760b43cae2',
+    'pcr_test_by_region.csv'
+  )
+  import_csv_to_sql('pcr_test_by_region.csv', 'pcr_test_region')
+
 def main():
   import_hospital_cases()
   import_hospital_new_cases()
+  import_pcr_test_per_region()
 
 if __name__ == "__main__":
   main()
