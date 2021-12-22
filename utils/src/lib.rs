@@ -5,7 +5,7 @@ use chrono::{NaiveDate, Datelike};
 /// for each gRPC microservices
 /// 
 /// # Arguments
-/// * `port` - &str
+/// * `port` - i32
 pub fn setup_services(port: i32) -> Result<String> {
     // set RUST_LOG based on the environment variable
     let (log_level, addr) = match std::env::var("rust_env") {

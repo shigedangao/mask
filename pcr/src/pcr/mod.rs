@@ -61,6 +61,12 @@ impl Date for PcrInput {
 
 #[tonic::async_trait]
 impl PcrService for PcrServiceHandle {
+    /// Retrieve PCR test made by region
+    /// The day is optional. Hence we can query either per day or per month
+    /// 
+    /// # Arguments
+    /// * `&self`
+    /// * `request` - Request<PcrInput>
     async fn get_pcr_test_made_by_region(
         &self,
         request: Request<PcrInput>
@@ -85,6 +91,12 @@ impl PcrService for PcrServiceHandle {
     }
 }
 
+/// Retrieve the PCR test by Region
+/// 
+/// # Arguments
+/// * `pool` - &PGPool
+/// * `date` - String
+/// * `region` - i32
 async fn get_pcr_test_by_region(pool: &PGPool, date: String, region: i32) -> Result<Vec<PcrResult>, PcrErr> {
     let mut tests = Vec::new();
     let date = format!("{}%", date);
@@ -100,4 +112,63 @@ async fn get_pcr_test_by_region(pool: &PGPool, date: String, region: i32) -> Res
     }
 
     Ok(tests)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn expect_to_query_pcr_case() {
+        let pool = db::connect("../config.toml").await.unwrap();
+        let res = get_pcr_test_by_region(
+            &pool,
+            "2021-12-09".to_string(),
+            93
+        ).await;
+
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn expect_grpc_to_return_response() {
+        let pool = db::connect("../config.toml").await.unwrap();
+        let pool_arc = Arc::new(pool);
+        let service = PcrServiceHandle {
+            pool: Arc::clone(&pool_arc)
+        };
+
+        let input = PcrInput {
+            day: Some("12".to_owned()),
+            month: "12".to_owned(),
+            year: 2021,
+            region: 93
+        };
+
+        let request = Request::new(input);
+        let res = service.get_pcr_test_made_by_region(request).await;
+
+        assert!(res.is_ok());
+    }
+
+    #[tokio::test]
+    async fn expect_grpc_to_return_error() {
+        let pool = db::connect("../config.toml").await.unwrap();
+        let pool_arc = Arc::new(pool);
+        let service = PcrServiceHandle {
+            pool: Arc::clone(&pool_arc)
+        };
+
+        let input = PcrInput {
+            day: Some("12".to_owned()),
+            month: "-1000".to_owned(),
+            year: 2021,
+            region: 93
+        };
+
+        let request = Request::new(input);
+        let res = service.get_pcr_test_made_by_region(request).await;
+
+        assert!(res.is_err());
+    }
 }
