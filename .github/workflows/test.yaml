@@ -22,6 +22,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v2
       - name: import database
@@ -31,6 +33,6 @@ jobs:
         env:
           db_username: $DB_USER
           db_password: $DB_PASSWORD
-          db_host: postgres
+          db_host: localhost
           db_port: 5432
           db_name: $DB_NAME
