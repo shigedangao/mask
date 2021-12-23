@@ -45,8 +45,8 @@ impl From<QueryResult> for PcrResult {
             department: q.dep,
             day: q.jour.unwrap_or_default(),
             population_by_department: q.pop,
-            total_positive_pcr_test: q.p.unwrap_or_default(),
-            pcr_test_done: q.t,
+            total_positive_pcr_test: q.p,
+            total_pcr_test_done: q.t,
             age: q.cl_age90.unwrap_or_default(),
             ..Default::default()
         }
@@ -79,6 +79,12 @@ impl PcrServiceDepartment for PcrServiceDepHandle {
     }
 }
 
+/// Retrieve pcr test by department
+/// 
+/// # Arguments
+/// * `pool` - &PGPool
+/// * `date` - String
+/// * `department` -String
 async fn get_pcr_test_by_department(pool: &PGPool, date: String, department: String) -> Result<Vec<PcrResult>, PcrErr> {
     let mut tests = Vec::new();
     let sql_date_like = format!("{}%", date);

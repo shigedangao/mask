@@ -73,7 +73,7 @@ def import_hospital_new_cases():
 
 def import_pcr_test_per_region():
   download_csv(
-    'https://www.data.gouv.fr/fr/datasets/r/ad09241e-52fa-4be8-8298-e5760b43cae2',
+    'https://www.data.gouv.fr/fr/datasets/r/001aca18-df6a-45c8-89e6-f82d689e6c01',
     'pcr_test_by_region.csv'
   )
   import_csv_to_sql(
@@ -82,13 +82,14 @@ def import_pcr_test_per_region():
     {
       "reg": int,
       "jour": "string",
-      "p_f": int,
-      "p_h": int,
-      "p": int,
-      "pop": float,
-      "pop_f": float,
-      "pop_h": float,
-      "cl_age90": int
+      "P_f": int,
+      "P_h": int,
+      "P": int,
+      "T": int,
+      "T_f": int,
+      "T_h": int,
+      "cl_age90": int,
+      "pop": float
     }
   )
 

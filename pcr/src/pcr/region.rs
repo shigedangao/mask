@@ -19,24 +19,26 @@ pub struct QueryResult {
     p_f: Option<i64>,
     p_h: Option<i64>,
     p: Option<i64>,
-    pop: Option<f64>,
-    pop_f: Option<f64>,
-    pop_h: Option<f64>,
-    cl_age90: Option<i64>
+    t: Option<i64>,
+    t_f: Option<i64>,
+    t_h: Option<i64>,
+    cl_age90: Option<i64>,
+    pop: Option<f64>
 }
 
 impl From<QueryResult> for PcrResult {
     fn from(q: QueryResult) -> Self {
         Self {
-            region: q.reg,
             day: q.jour.unwrap_or_default(),
+            age: q.cl_age90.unwrap_or_default(),
+            region: q.reg,
             population_by_region: q.pop,
             positive_pcr_test_male: q.p_h,
             positive_pcr_test_female: q.p_f,
-            age: q.cl_age90.unwrap_or_default(),
-            population_male: q.pop_h,
-            population_female: q.pop_f,
-            total_positive_pcr_test: q.p.unwrap_or_default(),
+            total_positive_pcr_test: q.p,
+            pcr_test_male: q.t_h,
+            pcr_test_female: q.t_f,
+            total_pcr_test_done: q.t,
             ..Default::default()
         }
     }

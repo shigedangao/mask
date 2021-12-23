@@ -24,16 +24,16 @@ message PcrInputRegion {
 }
 
 message PcrResult {
-    optional int64 region = 1;
-    string day = 2;
-    optional double population_by_region = 3;
-    optional int64 positive_pcr_test_male = 4;
-    optional int64 positive_pcr_test_female = 5;
-    int64 age = 6;
-    optional double population_male = 7;
-    optional double population_female = 8;
-    int64 total_positive_pcr_test = 9;
-    optional int64 pcr_test_done = 10;
+    string day = 1;
+    int64 age = 2;
+    optional int64 region = 3;
+    optional double population_by_region = 4;
+    optional int64 positive_pcr_test_male = 5;
+    optional int64 positive_pcr_test_female = 6;
+    optional int64 total_positive_pcr_test = 7;
+    optional int64 pcr_test_male = 8;
+    optional int64 pcr_test_female = 9;
+    optional int64 total_pcr_test_done = 10;
     optional string department = 11;
     optional double population_by_department = 12;
 }
