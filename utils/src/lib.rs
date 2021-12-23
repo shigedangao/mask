@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use chrono::{NaiveDate, Datelike, Weekday};
+use chrono::{NaiveDate, Datelike};
 
 /// Setup the library and the address to use based on the environment variable
 /// for each gRPC microservices
@@ -77,13 +77,13 @@ pub trait Date {
         }
     }
 
-    /// Return a list of day of a week from Monday to Sunday based on a given day
+    /// Return a list of the last 7 day based on a given day
     /// For example if the given date is 2021-12-23. The method will returns a list of
     /// dates between 2021-12-20 -> 2021-12-26
     /// 
     /// # Arguments
     /// * `&self`
-    fn get_week_date_from_day(&self) -> Option<Vec<String>> {
+    fn get_previous_seven_date_from_day(&self) -> Option<Vec<String>> {
         let day = self.get_day()?;
 
         // building a date with chrono
@@ -95,19 +95,15 @@ pub trait Date {
             }
         };
 
-        let weekday = vec![
-            Weekday::Mon,
-            Weekday::Tue,
-            Weekday::Wed,
-            Weekday::Thu,
-            Weekday::Fri,
-            Weekday::Sat,
-            Weekday::Sun
-        ];
+        let mut days = Vec::new();
+        for i in 0..7 {
+            let naivedate = NaiveDate::from_ymd_opt(date.year(), date.month(), date.day() - i);
+            days.push(naivedate);
+        };
 
-        let days: Vec<String> = weekday
+        let days: Vec<String> = days
             .into_iter()
-            .filter_map(|w| NaiveDate::from_isoywd_opt(date.year(), date.iso_week().week(), w))
+            .filter_map(|v| v)
             .map(|day| format!("{}-{}-{}", day.year(), day.month(), day.day()))
             .collect();
             

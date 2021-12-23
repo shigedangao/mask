@@ -79,7 +79,7 @@ impl PositivityRate for PosServiceHandle {
         request: Request<PositivityInput>
     ) -> Result<Response<PositivityWeekCollection>, Status> {
         let input = request.into_inner();
-        let dates = match input.get_week_date_from_day() {
+        let dates = match input.get_previous_seven_date_from_day() {
             Some(d) => d,
             None => {
                 return Err(Status::new(Code::InvalidArgument, "Date is invalid"));
@@ -122,6 +122,7 @@ async fn get_positivity_per_day(pool: &PGPool, date: String, department: String)
 async fn get_positivity_for_week(pool: &PGPool, dates: Vec<String>, department: String) -> Result<Vec<PositivityDayResult>, PcrErr> {
     let mut rates = Vec::new();
     for date in dates.iter() {
+        // Note we don't query the date as a Date as it seems that we're unable to convert a string into a date with panda...
         let res: Result<QueryResult, sqlx::Error> = sqlx::query_as("SELECT * FROM positivity_rate_per_dep_by_day WHERE jour = $1 AND dep = $2")
             .bind(date)
             .bind(&department)
