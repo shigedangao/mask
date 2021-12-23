@@ -3,7 +3,7 @@ package pos;
 
 service PositivityRate {
     rpc getPositivityByDepartmentPerDay(PositivityInput) returns (PositivityCollection);
-    // rpc getPositivityByDepartmentPerWeek() returns ();
+    rpc getPositivityByDepartmentPerWeek(PositivityInput) returns (PositivityWeekCollection);
 }
 
 message PositivityInput {
@@ -24,4 +24,9 @@ message PositivityDayResult {
 
 message PositivityCollection {
     repeated PositivityDayResult rates = 1;
+}
+
+message PositivityWeekCollection {
+    repeated PositivityDayResult rates = 1;
+    double week_infection_rate = 2;
 }

@@ -3,12 +3,12 @@ use db::PGPool;
 use tonic::{Request, Response, Status, Code};
 use futures::TryStreamExt;
 use crate::err::PcrErr;
-
 use super::pos_schema::{
     positivity_rate_server::PositivityRate,
     PositivityInput,
     PositivityCollection,
     PositivityDayResult,
+    PositivityWeekCollection
 };
 use utils::Date;
 
@@ -73,6 +73,33 @@ impl PositivityRate for PosServiceHandle {
             }
         }
     }
+
+    async fn get_positivity_by_department_per_week(
+        &self,
+        request: Request<PositivityInput>
+    ) -> Result<Response<PositivityWeekCollection>, Status> {
+        let input = request.into_inner();
+        let dates = match input.get_week_date_from_day() {
+            Some(d) => d,
+            None => {
+                return Err(Status::new(Code::InvalidArgument, "Date is invalid"));
+            }
+        };
+
+        let res = match get_positivity_for_week(&self.pool, dates, input.department).await {
+            Ok(res) => res,
+            Err(err) => {
+                error!("fetch positivity cases per week {:?}", err);
+                return Err(Status::new(Code::Internal, "Unable to retrieve positivity case by week"));
+            }
+        };
+
+        let week_infection_rate = calculate_positivity_per_week(&res);
+        Ok(Response::new(PositivityWeekCollection {
+            rates: res,
+            week_infection_rate
+        }))
+    }
 }
 
 async fn get_positivity_per_day(pool: &PGPool, date: String, department: String) -> Result<Vec<PositivityDayResult>, PcrErr> {
@@ -90,4 +117,33 @@ async fn get_positivity_per_day(pool: &PGPool, date: String, department: String)
     }
 
     Ok(rates)
+}
+
+async fn get_positivity_for_week(pool: &PGPool, dates: Vec<String>, department: String) -> Result<Vec<PositivityDayResult>, PcrErr> {
+    let mut rates = Vec::new();
+    for date in dates.iter() {
+        let res: Result<QueryResult, sqlx::Error> = sqlx::query_as("SELECT * FROM positivity_rate_per_dep_by_day WHERE jour = $1 AND dep = $2")
+            .bind(date)
+            .bind(&department)
+            .fetch_one(pool)
+            .await;
+
+        match res {
+            Ok(data) => rates.push(PositivityDayResult::from(data)),
+            Err(err) => {
+                match err {
+                    sqlx::error::Error::RowNotFound => continue,
+                    _ => return Err(err.into())
+                }
+            }
+        }
+    }
+    
+    Ok(rates)
+}
+
+fn calculate_positivity_per_week(cases: &Vec<PositivityDayResult>) -> f64 {
+    cases
+        .into_iter()
+        .fold(0.0, |acc, c| acc + c.infection_rate)
 }
