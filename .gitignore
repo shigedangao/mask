@@ -7,3 +7,4 @@ keys/*.pem
 keys/*.srl
 keys/*.key
 gen.sh
+*.csv

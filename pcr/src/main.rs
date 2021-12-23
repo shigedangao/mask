@@ -5,6 +5,7 @@ use std::sync::Arc;
 extern crate log;
 
 mod pcr;
+mod positivity;
 mod err;
 
 use pcr::{
@@ -12,6 +13,10 @@ use pcr::{
     dep::PcrServiceDepHandle,
     pcr_test::pcr_service_region_server::PcrServiceRegionServer,
     pcr_test::pcr_service_department_server::PcrServiceDepartmentServer
+};
+use positivity::{
+    dep::PosServiceHandle,
+    pos_schema::positivity_rate_server::PositivityRateServer
 };
 
 #[tokio::main]
@@ -35,6 +40,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             pool: Arc::clone(&db_handle)
         }))
         .add_service(PcrServiceDepartmentServer::new(PcrServiceDepHandle {
+            pool: Arc::clone(&db_handle)
+        }))
+        .add_service(PositivityRateServer::new(PosServiceHandle {
             pool: Arc::clone(&db_handle)
         }))
         .serve(addr)

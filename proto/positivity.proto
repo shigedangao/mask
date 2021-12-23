@@ -1,0 +1,27 @@
+syntax = "proto3";
+package pos;
+
+service PositivityRate {
+    rpc getPositivityByDepartmentPerDay(PositivityInput) returns (PositivityCollection);
+    // rpc getPositivityByDepartmentPerWeek() returns ();
+}
+
+message PositivityInput {
+    optional int32 day = 1;
+    int32 month = 2;
+    int32 year = 3;
+    string department = 4;
+}
+
+message PositivityDayResult {
+    string department = 1;
+    string day = 2;
+    int64 population_reference = 3;
+    int64 pcr_positive = 4;
+    // infection rate per 100k
+    double infection_rate = 5;
+}
+
+message PositivityCollection {
+    repeated PositivityDayResult rates = 1;
+}

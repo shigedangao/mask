@@ -94,21 +94,42 @@ def import_pcr_test_per_region():
   )
 
 def import_pcr_test_per_department():
-    download_csv(
-      'https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675',
-      'pcr_test_by_department.csv'
-    )
-    import_csv_to_sql(
-      'pcr_test_by_department.csv',
-      'pcr_test_department',
-      {"dep": "string", "jour": "string", "cl_age90": int, "pop": float, "t": int, "p": int}
-    )
+  download_csv(
+    'https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675',
+    'pcr_test_by_department.csv'
+  )
+  import_csv_to_sql(
+    'pcr_test_by_department.csv',
+    'pcr_test_department',
+    {"dep": "string", "jour": "string", "cl_age90": int, "pop": float, "t": int, "p": int}
+  )
+
+def import_positivity_rate_per_department_by_day():
+  download_csv(
+    'https://www.data.gouv.fr/fr/datasets/r/4180a181-a648-402b-92e4-f7574647afa6',
+    'positivity_rate_by_department_per_day.csv'
+  )
+  import_csv_to_sql(
+    'positivity_rate_by_department_per_day.csv',
+    'positivity_rate_per_dep_by_day',
+    {"dep": "string", "jour": "string", "p": int, "tx_std": float}
+  )
+
+# remove csv after import
+def delete_csv():
+  os.remove('hospitalization_by_region.csv')
+  os.remove('hospitalization_new_case.csv')
+  os.remove('pcr_test_by_region.csv')
+  os.remove('pcr_test_by_department.csv')
+  os.remove('positivity_rate_by_department_per_day.csv')
 
 def main():
   import_hospital_cases()
   import_hospital_new_cases()
   import_pcr_test_per_region()
   import_pcr_test_per_department()
+  import_positivity_rate_per_department_by_day()
+  delete_csv()  
 
 if __name__ == "__main__":
   main()

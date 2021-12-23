@@ -78,15 +78,13 @@ impl PcrServiceRegion for PcrServiceHandle {
             }
         };
 
-        let reply = match get_pcr_test_by_region(&self.pool, date, input.region).await {
-            Ok(pcr) => PcrOutput { pcr },
+        match get_pcr_test_by_region(&self.pool, date, input.region).await {
+            Ok(pcr) => Ok(Response::new(PcrOutput { pcr })),
             Err(err) => {
                 error!("fetch pcr test by region {:?}", err);
-                return Err(Status::new(Code::Internal, "Unable to retrieve pcr case by region"));
+                Err(Status::new(Code::Internal, "Unable to retrieve pcr case by region"))
             }
-        };
-
-        Ok(Response::new(reply))
+        }
     }
 }
 
