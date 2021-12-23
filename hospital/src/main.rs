@@ -9,7 +9,7 @@ mod hospital;
 mod err;
 
 use hospital::care::care_status_server::CareStatusServer;
-use hospital::CareService;
+use hospital::status::CareService;
 use hospital::case::cases::case_service_server::CaseServiceServer;
 use hospital::case::CaseServiceHandle;
 

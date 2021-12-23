@@ -49,12 +49,12 @@ impl Date for PcrInputRegion {
         self.year
     }
 
-    fn get_month(&self) -> String {
-        self.month.clone()
+    fn get_month(&self) -> i32 {
+        self.month
     }
 
-    fn get_day(&self) -> Option<String> {
-        self.day.clone()
+    fn get_day(&self) -> Option<i32> {
+        self.day
     }
 }
 
@@ -138,8 +138,8 @@ mod tests {
         };
 
         let input = PcrInputRegion {
-            day: Some("12".to_owned()),
-            month: "12".to_owned(),
+            day: Some(12),
+            month: 12,
             year: 2021,
             region: 93
         };
@@ -159,8 +159,8 @@ mod tests {
         };
 
         let input = PcrInputRegion {
-            day: Some("12".to_owned()),
-            month: "-1000".to_owned(),
+            day: Some(12),
+            month: -1000,
             year: 2021,
             region: 93
         };

@@ -7,8 +7,8 @@ service CareStatus {
 }
 
 message CareStatusInput {
-    optional string day = 1;
-    string month = 2;
+    optional int32 day = 1;
+    int32 month = 2;
     int32 year = 3;
     int32 region = 4;
 }

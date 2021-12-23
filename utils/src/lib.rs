@@ -39,13 +39,13 @@ pub trait Date {
     /// 
     /// # Arguments
     /// * `&self` - &Date
-    fn get_month(&self) -> String;
+    fn get_month(&self) -> i32;
     /// Return the day
     /// Optional as we might only want the month for a year...
     /// 
     /// # Arguments
     /// * `&self` - &Date
-    fn get_day(&self) -> Option<String>;
+    fn get_day(&self) -> Option<i32>;
     /// Build Date based day, month, year from the struct. 
     /// Return an option if the date is valid.
     /// The date can be in either this format:

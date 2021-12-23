@@ -30,12 +30,12 @@ impl Date for PcrInputDepartment {
         self.year
     }
 
-    fn get_month(&self) -> String {
-        self.month.to_owned()
+    fn get_month(&self) -> i32 {
+        self.month
     }
 
-    fn get_day(&self) -> Option<String> {
-        self.day.to_owned()
+    fn get_day(&self) -> Option<i32> {
+        self.day
     }
 }
 
@@ -127,8 +127,8 @@ mod tests {
         };
 
         let input = PcrInputDepartment {
-            day: Some("01".to_string()),
-            month: "12".to_string(),
+            day: Some(1),
+            month: 12,
             year: 2021,
             department: "75".to_string()
         };
@@ -148,8 +148,8 @@ mod tests {
         };
 
         let input = PcrInputDepartment {
-            day: Some("2222222".to_string()),
-            month: "12".to_string(),
+            day: Some(2222222),
+            month: 12,
             year: 2021,
             department: "75".to_string()
         };
