@@ -1,5 +1,5 @@
 use err::DBError;
-use sqlx::{postgres::PgPoolOptions, Postgres, Pool};
+use sqlx::{postgres::{PgPoolOptions}, Postgres, Pool};
 use toml::Value;
 use std::fs;
 

@@ -8,8 +8,10 @@ mod pcr;
 mod err;
 
 use pcr::{
-    PcrServiceHandle,
-    pcr_test::pcr_service_server::PcrServiceServer
+    region::PcrServiceHandle,
+    dep::PcrServiceDepHandle,
+    pcr_test::pcr_service_region_server::PcrServiceRegionServer,
+    pcr_test::pcr_service_department_server::PcrServiceDepartmentServer
 };
 
 #[tokio::main]
@@ -29,7 +31,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Starting the server port 9090");
     Server::builder()
         .tls_config(ServerTlsConfig::new().identity(identity))?
-        .add_service(PcrServiceServer::new(PcrServiceHandle {
+        .add_service(PcrServiceRegionServer::new(PcrServiceHandle {
+            pool: Arc::clone(&db_handle)
+        }))
+        .add_service(PcrServiceDepartmentServer::new(PcrServiceDepHandle {
             pool: Arc::clone(&db_handle)
         }))
         .serve(addr)
