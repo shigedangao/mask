@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use futures::TryStreamExt;
 use db::PGPool;
-use tonic::{Request, Response, Status, Code};
+use tonic::{Request, Response, Status};
 use utils::Date;
 
 use crate::err::PcrErr;
@@ -55,6 +55,11 @@ impl From<QueryResult> for PcrResult {
 
 #[tonic::async_trait]
 impl PcrServiceDepartment for PcrServiceDepHandle {
+    /// Get the list of pcr test made per department
+    /// 
+    /// # Arguments
+    /// * `&self`
+    /// * `request` - Request<PcrInputDepartment>
     async fn get_pcr_test_made_by_department(
         &self,
         request: Request<PcrInputDepartment>
@@ -62,20 +67,16 @@ impl PcrServiceDepartment for PcrServiceDepHandle {
         let input = request.into_inner();
         let date = match input.build_date() {
             Some(d) => d,
-            None => {
-                return Err(Status::new(Code::InvalidArgument, "Date is not valid"))
-            }
+            None => return Err(PcrErr::InvalidDate.into())
         };
 
-        let reply = match get_pcr_test_by_department(&self.pool, date, input.department).await {
-            Ok(pcr) => PcrOutput { pcr },
+        match get_pcr_test_by_department(&self.pool, date, input.department).await {
+            Ok(pcr) => Ok(Response::new(PcrOutput { pcr })),
             Err(err) => {
                 error!("fetch pcr by department {:?}", err);
-                return Err(Status::new(Code::Internal, "Unable to retrieve pcr test by department"));
+                return Err(PcrErr::QueryError("pcr by department".into()).into());
             }
-        };
-
-        Ok(Response::new(reply))
+        }
     }
 }
 

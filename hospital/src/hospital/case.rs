@@ -1,4 +1,4 @@
-use tonic::{Request, Response, Status, Code};
+use tonic::{Request, Response, Status};
 use cases::case_service_server::CaseService;
 use cases::{CaseInput, NewCases, NewCase};
 use std::sync::Arc;
@@ -66,20 +66,16 @@ impl CaseService for CaseServiceHandle {
         let input = request.into_inner();
         let date = match input.build_date() {
             Some(date) => date,
-            None => {
-                return Err(Status::new(Code::InvalidArgument, "The date is invalid"))
-            }
+            None => return Err(MaskErr::InvalidDate.into())
         };        
 
-        let reply = match get_new_cases_by_department(&self.pool, date, input.department).await {
-            Ok(cases) => NewCases { cases },
+        match get_new_cases_by_department(&self.pool, date, input.department).await {
+            Ok(cases) => Ok(Response::new(NewCases { cases })),
             Err(err) => {
                 error!("fetch new cases error: {:?}", err);
-                return Err(Status::new(Code::Internal, "Unable to fetch new cases in hospital"));
+                return Err(MaskErr::QueryError("new case by department".into()).into());
             }
-        };
-
-        Ok(Response::new(reply))
+        }
     }
 }
 

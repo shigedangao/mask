@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use tonic::{Request, Response, Status, Code};
+use tonic::{Request, Response, Status};
 use futures::TryStreamExt;
 use db::PGPool;
 use utils::Date;
@@ -74,20 +74,16 @@ impl CareStatus for CareService {
         let input = request.into_inner();
         let date = match input.build_date() {
             Some(date) => date,
-            None => {
-                return Err(Status::new(Code::InvalidArgument, "The date is invalid"))
-            }
+            None => return Err(MaskErr::InvalidDate.into())
         };
 
-        let reply = match get_cases_by_day_and_region(&self.pool, date, input.region).await {
-            Ok(cases) => CareStatusOutput { cases },
+        match get_cases_by_day_and_region(&self.pool, date, input.region).await {
+            Ok(cases) => Ok(Response::new(CareStatusOutput { cases })),
             Err(err) => {
                 error!("fetch hospitalization {:?}", err);
-                return Err(Status::new(Code::Internal, "Unable to retrieve hospitalization cases by day"));
+                return Err(MaskErr::QueryError("hospitalization by region".into()).into());
             }
-        };
-
-        Ok(Response::new(reply))
+        }
     }
 }
 

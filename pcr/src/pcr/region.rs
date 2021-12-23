@@ -73,9 +73,7 @@ impl PcrServiceRegion for PcrServiceHandle {
         let input = request.into_inner();
         let date = match input.build_date() {
             Some(res) => res,
-            None => {
-                return Err(Status::new(Code::InvalidArgument, "Date is invalid"))
-            }
+            None => return Err(PcrErr::InvalidDate.into())
         };
 
         match get_pcr_test_by_region(&self.pool, date, input.region).await {
