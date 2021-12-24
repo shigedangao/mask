@@ -1,6 +1,15 @@
 # Mask 😷
 
-Playground to learn gRPC
+Playground to learn gRPC. This repo contain 2 microservices
+
+- hospital -> expose a list of endpoint related to the number of cases in the hospital
+- pcr -> expose a list of endpoints related to the number of pcr and posiviity cases
+
+## Internal dependency of these microservices
+
+These two projects uses two internal library
+- db -> Handle connection to the database
+- utils -> Common utility method / trait... which are used by both of these microservices (maybe should have named common...)
 
 ## Install
 
@@ -28,7 +37,7 @@ You can manually import the dataset by downloading the CSV files from these link
 - [Hospital new case](https://www.data.gouv.fr/fr/datasets/r/6fadff46-9efd-4c53-942a-54aca783c30c)
 - [Positive pcr test by department](https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675)
 - [Positive pcr test by region](https://www.data.gouv.fr/fr/datasets/r/001aca18-df6a-45c8-89e6-f82d689e6c01)
-- [Covid cases by 100k daily per department](https://www.data.gouv.fr/fr/datasets/r/4180a181-a648-402b-92e4-f7574647afa6)
+- [Positivity cases per department for 100k daily](https://www.data.gouv.fr/fr/datasets/r/4180a181-a648-402b-92e4-f7574647afa6)
 
 ### Import dataset automatically
 

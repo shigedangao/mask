@@ -1,5 +1,5 @@
 use color_eyre::Result;
-use chrono::{NaiveDate, Datelike};
+use chrono::{NaiveDate, Datelike, Duration};
 
 /// Setup the library and the address to use based on the environment variable
 /// for each gRPC microservices
@@ -96,14 +96,14 @@ pub trait Date {
         };
 
         let mut days = Vec::new();
+        let based_date = NaiveDate::from_ymd_opt(date.year(), date.month(), date.day())?;
         for i in 0..7 {
-            let naivedate = NaiveDate::from_ymd_opt(date.year(), date.month(), date.day() - i);
+            let naivedate = based_date.pred_opt()? - Duration::days(i);
             days.push(naivedate);
         };
 
         let days: Vec<String> = days
             .into_iter()
-            .filter_map(|v| v)
             .map(|day| format!("{}-{}-{}", day.year(), day.month(), day.day()))
             .collect();
             
