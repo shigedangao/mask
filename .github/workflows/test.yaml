@@ -17,9 +17,9 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_PASSWORD: $db_password
-          POSTGRES_USER: $db_username
-          POSTGRES_DB: $db_name
+          POSTGRES_PASSWORD: flyingfox
+          POSTGRES_USER: fox
+          POSTGRES_DB: covid
         options: >-
           --health-cmd pg_isready
           --health-interval 10s

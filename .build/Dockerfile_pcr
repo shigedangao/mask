@@ -1,0 +1,45 @@
+######## Builder ########
+FROM rust:1 as builder
+ENV APP_PATH=pcr
+RUN USER=root cargo new --bin pcr
+
+# copy dependency
+COPY ./db ./db
+COPY ./utils ./utils
+COPY ./proto ./proto
+
+# Install rustfmt
+RUN rustup component add rustfmt
+
+WORKDIR ${APP_PATH}
+
+# copy toml
+COPY ./pcr/Cargo.toml ${APP_PATH}
+COPY ./Cargo.lock ${APP_PATH}
+
+# build
+RUN cargo build --release
+RUN rm src/*.rs
+
+# Use the code to compile the project w/o having to redownload the dependency
+ADD ./pcr ./
+RUN rm ./target/release/deps/pcr*
+RUN cargo build --release
+
+######## Runner ########
+FROM debian:bullseye
+ARG APP=/usr/src/app
+
+RUN apt-get purge ca-certificates
+RUN apt-get update && apt-get install -y openssl \
+    ca-certificates
+
+RUN useradd ferris
+
+COPY --from=builder /pcr/target/release/pcr ${APP}/pcr
+
+WORKDIR ${APP}
+
+USER ferris
+
+CMD ["./pcr"]

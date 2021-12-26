@@ -1,0 +1,27 @@
+name: build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  hospital:
+    uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
+    with:
+      file: Dockerfile_hospital
+      image_name: mask_hospital
+    secrets:
+      docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+  pcr:
+    uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
+    with:
+      file: Dockerfile_pcr
+      image_name: mask_pcr
+    secrets:
+      docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
