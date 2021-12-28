@@ -25,3 +25,12 @@ jobs:
     secrets:
       docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
       docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  python:
+    uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
+    with:
+      file: Dockerfile_py
+      image_name: mask_python
+    secrets:
+      docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}

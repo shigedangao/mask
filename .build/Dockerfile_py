@@ -1,0 +1,12 @@
+FROM python:3-10-bullseye
+
+ENV APP_PATH=importer
+
+WORKDIR ${APP_PATH}
+
+COPY ./requirements.txt ./
+COPY import.py ./
+
+RUN pip install -r requirements.txt
+
+CMD ["python", "import.py"]
