@@ -22,7 +22,7 @@ use positivity::{
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = utils::setup_services(9090)?;
+    let addr = utils::setup_services("pcr" ,9090)?;
 
     info!("Connecting to the database");
     let db_pool = db::connect("../config.toml").await?;

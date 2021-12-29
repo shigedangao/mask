@@ -7,17 +7,17 @@ use chrono::{NaiveDate, Datelike, Duration};
 /// 
 /// # Arguments
 /// * `port` - i32
-pub fn setup_services(port: i32) -> Result<String> {
+pub fn setup_services(name: &str, port: i32) -> Result<String> {
     // set RUST_LOG based on the environment variable
     let (log_level, addr) = match std::env::var("rust_env") {
         Ok(res) => {
             if res == "prod" {
-                ("mask=info", format!("0.0.0.0:{}", port))
+                (format!("{}=info", name), format!("0.0.0.0:{}", port))
             } else {
-                ("mask=info", format!("127.0.0.1:{}", port))
+                (format!("{}=info", name), format!("127.0.0.1:{}", port))
             }
         },
-        Err(_) => ("info", format!("127.0.0.1:{}", port))
+        Err(_) => ("info".to_owned(), format!("127.0.0.1:{}", port))
     };
 
     // set environment variable for log debugging

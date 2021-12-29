@@ -16,7 +16,7 @@ use hospital::case::CaseServiceHandle;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = utils::setup_services(9000)?;
+    let addr = utils::setup_services("mask" ,9000)?;
 
     info!("Connecting to the database");
     let db_pool = db::connect("../config.toml").await?;
