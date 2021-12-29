@@ -2,6 +2,10 @@ pub mod case;
 pub mod status;
 
 // import generated struct by tonic
-pub mod care {
+pub mod proto_hospital {
     tonic::include_proto!("hospital");
+}
+
+pub mod proto_newcase {
+    tonic::include_proto!("newcase");
 }

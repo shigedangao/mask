@@ -1,6 +1,6 @@
 pub mod region;
 pub mod dep;
 
-pub mod pcr_test {
+pub mod proto {
     tonic::include_proto!("pcr");
 }

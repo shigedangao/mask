@@ -5,8 +5,8 @@ use db::PGPool;
 use utils::Date;
 use crate::err::MaskErr;
 
-use super::care::{CareStatusPayload, CareStatusInput, CareStatusOutput};
-use super::care::care_status_server::CareStatus;
+use super::proto_hospital::{CareStatusPayload, CareStatusInput, CareStatusOutput};
+use super::proto_hospital::care_status_server::CareStatus;
 
 // Hold a pool of connection
 #[derive(Debug)]

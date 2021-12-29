@@ -1,4 +1,5 @@
 use tonic::transport::{Server, Identity, ServerTlsConfig};
+use tonic_health::ServingStatus;
 use std::sync::Arc;
 
 #[macro_use]
@@ -11,12 +12,12 @@ mod err;
 use pcr::{
     region::PcrServiceHandle,
     dep::PcrServiceDepHandle,
-    pcr_test::pcr_service_region_server::PcrServiceRegionServer,
-    pcr_test::pcr_service_department_server::PcrServiceDepartmentServer
+    proto::pcr_service_region_server::PcrServiceRegionServer,
+    proto::pcr_service_department_server::PcrServiceDepartmentServer
 };
 use positivity::{
     dep::PosServiceHandle,
-    pos_schema::positivity_rate_server::PositivityRateServer
+    proto::positivity_rate_server::PositivityRateServer
 };
 
 #[tokio::main]
@@ -32,10 +33,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let key = tokio::fs::read("../keys/server-key.key").await?;
     let identity = Identity::from_pem(cert, key);
 
+    // creating healthcheck service
+    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
+    health_reporter
+        .set_service_status("Pcr", ServingStatus::Serving)
+        .await;
+
     let addr = addr.parse()?;
     info!("Starting the server port 9090");
     Server::builder()
         .tls_config(ServerTlsConfig::new().identity(identity))?
+        .add_service(health_service)
         .add_service(PcrServiceRegionServer::new(PcrServiceHandle {
             pool: Arc::clone(&db_handle)
         }))

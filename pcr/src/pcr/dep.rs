@@ -6,7 +6,7 @@ use utils::Date;
 
 use crate::err::PcrErr;
 
-use super::pcr_test::{
+use super::proto::{
     pcr_service_department_server::PcrServiceDepartment,
     PcrInputDepartment, PcrOutput, PcrResult
 };

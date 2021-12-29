@@ -3,7 +3,7 @@ use db::PGPool;
 use tonic::{Request, Response, Status};
 use futures::TryStreamExt;
 use crate::err::PcrErr;
-use super::pos_schema::{
+use super::proto::{
     positivity_rate_server::PositivityRate,
     PositivityInput,
     PositivityCollection,

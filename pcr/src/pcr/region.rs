@@ -5,8 +5,8 @@ use db::PGPool;
 use utils::Date;
 use crate::err::PcrErr;
 
-use super::pcr_test::pcr_service_region_server::PcrServiceRegion;
-use super::pcr_test::{PcrInputRegion, PcrOutput, PcrResult};
+use super::proto::pcr_service_region_server::PcrServiceRegion;
+use super::proto::{PcrInputRegion, PcrOutput, PcrResult};
 
 pub struct PcrServiceHandle {
     pub pool: Arc<PGPool>

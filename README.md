@@ -23,6 +23,17 @@ db_port="5500"
 db_name="covid"
 ```
 
+## Healthcheck
+
+Healthcheck can be done with [grpc-health-probe](https://github.com/grpc-ecosystem/grpc-health-probe). Below is an exmaple of how to use it
+
+```bash
+./grpc_health_probe -addr=127.0.0.1:9000 -service=Hospital \
+    -tls \
+    -tls-ca-cert mask/keys/ca-cert.pem \
+    -tls-server-name=localhost
+```
+
 ## Development
 
 ### Docker

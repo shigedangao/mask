@@ -1,4 +1,5 @@
 use tonic::transport::{Server, Identity, ServerTlsConfig};
+use tonic_health::ServingStatus;
 use std::sync::Arc;
 use utils;
 
@@ -8,9 +9,9 @@ extern crate log;
 mod hospital;
 mod err;
 
-use hospital::care::care_status_server::CareStatusServer;
+use hospital::proto_newcase::case_service_server::CaseServiceServer;
+use hospital::proto_hospital::care_status_server::CareStatusServer;
 use hospital::status::CareService;
-use hospital::case::cases::case_service_server::CaseServiceServer;
 use hospital::case::CaseServiceHandle;
 
 #[tokio::main]
@@ -26,12 +27,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let key = tokio::fs::read("../keys/server-key.key").await?;
     let identity = Identity::from_pem(cert, key);
 
+    // creating healthcheck service
+    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
+    health_reporter
+        .set_service_status("Hospital", ServingStatus::Serving)
+        .await;
+
     // setup the server
     let addr = addr.parse()?;
     info!("Server is running on port 9000");
 
     Server::builder()
         .tls_config(ServerTlsConfig::new().identity(identity))?
+        .add_service(health_service)
         .add_service(CareStatusServer::new(CareService{
             pool: Arc::clone(&db_handle)
         }))

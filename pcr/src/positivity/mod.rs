@@ -1,5 +1,5 @@
 pub mod dep;
 
-pub mod pos_schema {
+pub mod proto {
     tonic::include_proto!("pos");
 }

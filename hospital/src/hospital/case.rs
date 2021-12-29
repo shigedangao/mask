@@ -1,16 +1,13 @@
 use tonic::{Request, Response, Status};
-use cases::case_service_server::CaseService;
-use cases::{CaseInput, NewCases, NewCase};
 use std::sync::Arc;
 use futures::TryStreamExt;
 use db::PGPool;
-use crate::err::MaskErr;
 use utils::Date;
+use crate::err::MaskErr;
+use super::proto_newcase::{CaseInput, NewCases, NewCase};
+use super::proto_newcase::case_service_server::CaseService;
 
 // import generated struct by tonic
-pub mod cases {
-    tonic::include_proto!("newcase");
-}
 
 pub struct CaseServiceHandle {
     pub pool: Arc<PGPool>
