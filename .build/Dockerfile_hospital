@@ -22,7 +22,8 @@ RUN cargo build --release
 RUN rm src/*.rs
 
 # Use the code to compile the project w/o having to redownload the dependency
-ADD ./hospital/* ${APP_PATH}
+COPY ./hospital/* ${APP_PATH}
+RUN ls
 RUN rm ./target/release/deps/hospital*
 RUN cargo build --release
 

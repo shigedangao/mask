@@ -22,7 +22,7 @@ RUN cargo build --release
 RUN rm src/*.rs
 
 # Use the code to compile the project w/o having to redownload the dependency
-ADD ./pcr/* ${APP_PATH}
+COPY ./pcr/* ${APP_PATH}
 RUN rm ./target/release/deps/pcr*
 RUN cargo build --release
 
