@@ -1,30 +1,21 @@
 ######## Builder ########
 FROM rust:1 as builder
 ENV APP_PATH=hospital
-RUN USER=root cargo new --bin hospital
 
 # copy dependency
 COPY ./db ./db
 COPY ./utils ./utils
 COPY ./proto ./proto
+COPY ./hospital ${APP_PATH}
+# Copy lock
+COPY ./Cargo.lock ${APP_PATH}
 
 # Install rustfmt
 RUN rustup component add rustfmt
 
 WORKDIR ${APP_PATH}
 
-# copy toml
-COPY ./hospital/Cargo.toml ${APP_PATH}
-COPY ./Cargo.lock ${APP_PATH}
-
 # build
-RUN cargo build --release
-RUN rm src/*.rs
-
-# Use the code to compile the project w/o having to redownload the dependency
-COPY ./hospital/* ${APP_PATH}
-RUN ls
-RUN rm ./target/release/deps/hospital*
 RUN cargo build --release
 
 ######## Runner ########

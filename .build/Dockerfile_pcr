@@ -7,23 +7,16 @@ RUN USER=root cargo new --bin pcr
 COPY ./db ./db
 COPY ./utils ./utils
 COPY ./proto ./proto
+COPY ./pcr ${APP_PATH}
+# copy lock
+COPY ./Cargo.lock ${APP_PATH}
 
 # Install rustfmt
 RUN rustup component add rustfmt
 
 WORKDIR ${APP_PATH}
 
-# copy toml
-COPY ./pcr/Cargo.toml ${APP_PATH}
-COPY ./Cargo.lock ${APP_PATH}
-
 # build
-RUN cargo build --release
-RUN rm src/*.rs
-
-# Use the code to compile the project w/o having to redownload the dependency
-COPY ./pcr/* ${APP_PATH}
-RUN rm ./target/release/deps/pcr*
 RUN cargo build --release
 
 ######## Runner ########
