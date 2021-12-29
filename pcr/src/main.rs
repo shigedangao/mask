@@ -29,8 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_handle = Arc::new(db_pool);
 
     // load tls certificate
-    let cert = tokio::fs::read("../keys/server-cert.pem").await?;
-    let key = tokio::fs::read("../keys/server-key.key").await?;
+    let (cert, key) = utils::get_certificates()?;
     let identity = Identity::from_pem(cert, key);
 
     // creating healthcheck service

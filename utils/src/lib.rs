@@ -12,9 +12,9 @@ pub fn setup_services(port: i32) -> Result<String> {
     let (log_level, addr) = match std::env::var("rust_env") {
         Ok(res) => {
             if res == "prod" {
-                ("warn", format!("0.0.0.0:{}", port))
+                ("mask=info", format!("0.0.0.0:{}", port))
             } else {
-                ("info", format!("127.0.0.1:{}", port))
+                ("mask=info", format!("127.0.0.1:{}", port))
             }
         },
         Err(_) => ("info", format!("127.0.0.1:{}", port))
