@@ -1,3 +1,4 @@
+use std::fs;
 use color_eyre::Result;
 use chrono::{NaiveDate, Datelike, Duration};
 
@@ -27,6 +28,30 @@ pub fn setup_services(port: i32) -> Result<String> {
     env_logger::init();
 
     Ok(addr.to_owned())
+}
+
+/// Retrieve the certificate either form a filepath set on the environment variable
+/// or by looking at the keys folder (local dev)
+pub fn get_certificates() -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
+    let env = match std::env::var("rust_env") {
+        Ok(res) => res,
+        Err(_) => "dev".to_owned()
+    };
+
+    if env == "prod" {
+        let filepath_cert = std::env::var("server_cert")?;
+        let filepath_key = std::env::var("server_key")?;
+
+        let server_cert = fs::read(filepath_key)?;
+        let server_key = fs::read(filepath_cert)?;
+
+        return Ok((server_cert, server_key));
+    }
+
+    let server_cert = fs::read("../keys/server-cert.pem")?;
+    let server_key = fs::read("../keys/server-key.key")?;
+
+    Ok((server_cert, server_key))
 }
 
 pub trait Date {
