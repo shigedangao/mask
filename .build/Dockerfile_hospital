@@ -29,7 +29,7 @@ RUN apt-get update && apt-get install -y openssl \
 
 RUN useradd ferris
 
-COPY --from=builder /hospital/target/release/hospital ${APP}/hospital
+COPY --from=builder /hospital/target/release/mask ${APP}/hospital
 
 # install grpc_health_probe
 RUN GRPC_HEALTH_PROBE_VERSION=v0.4.6 && \
