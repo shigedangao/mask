@@ -42,8 +42,8 @@ pub fn get_certificates() -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Erro
         let filepath_cert = std::env::var("server_cert")?;
         let filepath_key = std::env::var("server_key")?;
 
-        let server_cert = fs::read(filepath_key)?;
-        let server_key = fs::read(filepath_cert)?;
+        let server_cert = fs::read(filepath_cert)?;
+        let server_key = fs::read(filepath_key)?;
 
         return Ok((server_cert, server_key));
     }
