@@ -1,4 +1,4 @@
-# Mask 😷
+# Mask 😷 (WIP)
 
 Playground to learn gRPC. This repo contain 2 microservices
 
