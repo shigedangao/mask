@@ -1,1 +1,1 @@
-subjectAltName=IP:0.0.0.0,IP:127.0.0.1,DNS:localhost,DNS:apollographql.com,DNS:studio.apollographql.com
+subjectAltName=IP:0.0.0.0,IP:127.0.0.1,DNS:localhost
