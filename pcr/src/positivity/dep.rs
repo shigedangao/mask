@@ -170,10 +170,10 @@ async fn get_positivity_for_week(pool: &PGPool, dates: Vec<String>, department: 
 /// if si-dep updated their CSV.
 ///
 /// # Arguments
-/// * `cases` - &Vec<PositivityDayResult>
-fn calculate_positivity_per_week(cases: &Vec<PositivityDayResult>) -> f64 {
+/// * `cases` - &[PositivityDayResult]
+fn calculate_positivity_per_week(cases: &[PositivityDayResult]) -> f64 {
     cases
-        .into_iter()
+        .iter()
         .fold(0.0, |acc, c| acc + c.infection_rate)
 }
 
