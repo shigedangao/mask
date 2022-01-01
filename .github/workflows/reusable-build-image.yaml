@@ -1,48 +1,36 @@
 on:
   workflow_call:
     inputs:
-      file:
-        required: true
-        type: string
       image_name:
         required: true
         type: string
-    secrets:
-      docker_username:
+      file_path:
         required: true
-      docker_password:
+        type: string
+    secrets:
+      workload_identity_provider:
+        required: true
+      service_account_name:
         required: true  
 
 jobs:
   build:
     name: build docker image
     runs-on: ubuntu-20.04
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     steps:
       - uses: actions/checkout@v2
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v3
+      - name: authenticate with gcloud
+        uses: google-github-actions/auth@v0
         with:
-          images: ${{ secrets.docker_username }}/${{ inputs.image_name }}
-          tags: |
-            type=sha
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to DockerHub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.docker_username }}
-          password: ${{ secrets.docker_password }}
-      - name: Github sha
-        run: echo "SHA=${GITHUB_SHA}" >> $GITHUB_ENV
-        shell: bash
-      - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: .build/${{ inputs.file }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          workload_identity_provider: ${{ secrets.workload_identity_provider }}
+          service_account: ${{ secrets.service_account_name }}
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0
+      - name: Build docker image
+        run: |-
+          git_hash=$(git rev-parse --short "$GITHUB_SHA")
+          gcloud builds submit \
+            --substitutions=_LOCATION="europe-west1",_REPOSITORY="rusty",_IMAGE=${{ inputs.image_name }},_SHA=$git_hash,_DOCKERFILE=${{ inputs.file_path }}
