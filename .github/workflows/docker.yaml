@@ -12,25 +12,25 @@ jobs:
   hospital:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
-      file: Dockerfile_hospital
+      file_path: Dockerfile_hospital
       image_name: mask_hospital
     secrets:
-      docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
-      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
   pcr:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
-      file: Dockerfile_pcr
+      file_path: Dockerfile_pcr
       image_name: mask_pcr
     secrets:
-      docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
-      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
 
   python:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
-      file: Dockerfile_py
+      file_path: Dockerfile_py
       image_name: mask_python
     secrets:
-      docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
-      docker_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
