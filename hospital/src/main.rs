@@ -1,7 +1,6 @@
 use tonic::transport::{Server, Identity, ServerTlsConfig};
 use tonic_health::ServingStatus;
 use std::sync::Arc;
-use utils;
 
 #[macro_use]
 extern crate log;

@@ -1,4 +1,4 @@
-use tonic::{Code, Status};
+use tonic::Status;
 
 #[derive(Debug)]
 pub enum PcrErr {
@@ -23,11 +23,11 @@ impl From<sqlx::Error> for PcrErr {
     }
 }
 
-impl Into<Status> for PcrErr {
-    fn into(self) -> Status {
-        match self {
-            PcrErr::InvalidDate => Status::new(Code::InvalidArgument, "Date is invalid"),
-            PcrErr::QueryError(msg) => Status::new(Code::Internal, format!("An error happened while getting {}", msg))
+impl From<PcrErr> for Status {
+    fn from(err: PcrErr) -> Self {
+        match err {
+            PcrErr::QueryError(msg) => Status::internal(msg),
+            PcrErr::InvalidDate => Status::invalid_argument("The date is invalid")
         }
     }
 }

@@ -1,10 +1,10 @@
-use tonic::{Code, Status};
+use tonic::Status;
 
 #[derive(Debug)]
 pub enum MaskErr {
     QueryError(String),
     InvalidDate,
-    IO(String)
+    IO(String),
 }
 
 impl std::fmt::Display for MaskErr {
@@ -12,7 +12,7 @@ impl std::fmt::Display for MaskErr {
         match self {
             MaskErr::QueryError(reason) => write!(f, "An error happened while fetching data, {:?}", reason),
             MaskErr::InvalidDate => write!(f, "The date is invalid"),
-            MaskErr::IO(msg) => write!(f, "Unable to open file for reasons: {}", msg)
+            MaskErr::IO(msg) => write!(f, "Unable to open file for reasons: {}", msg),
         }
     }
 }
@@ -31,12 +31,11 @@ impl From<std::io::Error> for MaskErr {
     }
 }
 
-impl Into<Status> for MaskErr {
-    fn into(self) -> Status {
-        match self {
-            MaskErr::InvalidDate => Status::new(Code::InvalidArgument, "Date is invalid"),
-            MaskErr::QueryError(msg) => Status::new(Code::Internal, format!("An error happened while getting {}", msg)),
-            MaskErr::IO(msg) => Status::new(Code::Internal, format!("An IO error occurred {}", msg))
+impl From<MaskErr> for Status {
+    fn from(err: MaskErr) -> Self {
+        match err {
+            MaskErr::QueryError(msg) | MaskErr::IO(msg) => Status::internal(msg),
+            MaskErr::InvalidDate => Status::invalid_argument("The date is invalid"),
         }
     }
 }

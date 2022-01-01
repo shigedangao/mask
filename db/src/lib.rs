@@ -56,19 +56,19 @@ fn build_dev_database_uri(filepath: &str) -> Result<String, DBError> {
         .map_err(|err| DBError::IO(err.to_string()))?;
 
     let username = values[ENV_DB_USERNAME].as_str()
-        .ok_or(DBError::MissingEnv(ENV_DB_USERNAME.into()))?;
+        .ok_or_else(|| DBError::MissingEnv(ENV_DB_USERNAME.into()))?;
 
     let password = values[ENV_DB_PASSWORD].as_str()
-        .ok_or(DBError::MissingEnv(ENV_DB_PASSWORD.into()))?;
+        .ok_or_else(|| DBError::MissingEnv(ENV_DB_PASSWORD.into()))?;
 
     let host = values[ENV_DB_HOST].as_str()
-        .ok_or(DBError::MissingEnv(ENV_DB_HOST.into()))?;
+        .ok_or_else(|| DBError::MissingEnv(ENV_DB_HOST.into()))?;
 
     let port = values[ENV_DB_PORT].as_str()
-        .ok_or(DBError::MissingEnv(ENV_DB_PORT.into()))?;
+        .ok_or_else(|| DBError::MissingEnv(ENV_DB_PORT.into()))?;
 
     let db_name = values[ENV_DB_NAME].as_str()
-        .ok_or(DBError::MissingEnv(ENV_DB_NAME.into()))?;
+        .ok_or_else(|| DBError::MissingEnv(ENV_DB_NAME.into()))?;
 
     let connection_uri = format!(
         "postgres://{}:{}@{}:{}/{}",

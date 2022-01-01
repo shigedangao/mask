@@ -29,6 +29,8 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v2
+      - name: install clippy
+        run: rustup component add clippy
       - name: import database
         run: pip install -r requirements.txt
       - name: prepare database
@@ -39,3 +41,10 @@ jobs:
       - name: test pcr services
         working-directory: pcr
         run: cargo build && cargo test
+      - name: run clippy for hospital service
+        working-directory: hospital
+        run: cargo clippy
+      - name: run clippy for pcr service
+        working-directory: pcr
+        run: cargo clippy
+        

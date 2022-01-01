@@ -27,7 +27,7 @@ pub fn setup_services(name: &str, port: i32) -> Result<String> {
     color_eyre::install()?;
     env_logger::init();
 
-    Ok(addr.to_owned())
+    Ok(addr)
 }
 
 /// Retrieve the certificate either form a filepath set on the environment variable
