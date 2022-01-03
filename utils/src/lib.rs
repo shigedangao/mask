@@ -102,6 +102,16 @@ pub trait Date {
         }
     }
 
+    /// Build a date and append a '%' for LIKE queries
+    ///
+    /// # Arguments
+    /// * `&self` - Self
+    fn build_date_sql_like(&self) -> Option<String> {
+        let date = self.build_date()?;
+
+        Some(format!("{}%", date))
+    }
+
     /// Return a list of the last 7 day based on a given day
     /// For example if the given date is 2021-12-23. The method will returns a list of
     /// dates between 2021-12-20 -> 2021-12-26
@@ -135,4 +145,5 @@ pub trait Date {
         Some(days)
     }
 }
+
 
