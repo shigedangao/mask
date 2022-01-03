@@ -11,7 +11,7 @@ message MixInput {
     int32 year = 3;
 }
 
-message MixPayload {
+message MixResult {
     string date = 1;
     string vaxx_status = 2;
     double pcr_done = 3;
@@ -28,5 +28,5 @@ message MixPayload {
 }
 
 message MixOutput {
-    repeated MixPayload data = 1;
+    repeated MixResult data = 1;
 }

@@ -98,10 +98,6 @@ def import_entry_in_icu_for_non_vaxx():
   util.download_file(unvaxx_url, 'unvaxx.json')
   util.import_json_to_db('unvaxx.json', ['france', 'values'], 'unvaxx')
 
-def import_entry_in_icu_by_region_for_non_vaxx():
-  util.download_file(unvaxx_url, 'unvaxx.json')
-  util.import_json_to_db('unvaxx.json', ['france', 'values'], 'unvaxx')
-
 def import_entry_in_icu_for_vaxx():
   util.download_file(vaxx_url, 'vaxx.json')
   util.import_json_to_db('vaxx.json', ['france', 'values'], 'vaxx')

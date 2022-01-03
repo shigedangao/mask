@@ -5,7 +5,7 @@ use utils::Date;
 use futures::TryStreamExt;
 use crate::err::MaskErr;
 use super::proto_mix::mix_service_server::MixService;
-use super::proto_mix::{MixInput, MixOutput, MixPayload};
+use super::proto_mix::{MixInput, MixOutput, MixResult};
 
 pub struct MixHandler {
     pub pool: Arc<PGPool>
@@ -33,7 +33,7 @@ struct QueryResult {
     effectif: i64
 }
 
-impl From<QueryResult> for MixPayload {
+impl From<QueryResult> for MixResult {
     fn from(q: QueryResult) -> Self {
         Self {
             date: q.date,
@@ -100,7 +100,7 @@ impl MixService for MixHandler {
 /// # Arguments
 /// * `pool` - &PGPool
 /// * `date` - String
-async fn get_global_cases_by_date(pool: &PGPool, date: String) -> Result<Vec<MixPayload>, MaskErr> {
+async fn get_global_cases_by_date(pool: &PGPool, date: String) -> Result<Vec<MixResult>, MaskErr> {
     let mut data = Vec::new();
     
     let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM data_mix WHERE date LIKE $1")
@@ -108,7 +108,7 @@ async fn get_global_cases_by_date(pool: &PGPool, date: String) -> Result<Vec<Mix
         .fetch(pool);
 
     while let Some(row) = stream.try_next().await? {
-        data.push(MixPayload::from(row));
+        data.push(MixResult::from(row));
     }
 
     Ok(data)
