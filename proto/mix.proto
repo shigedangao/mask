@@ -1,0 +1,32 @@
+syntax = "proto3";
+package mix;
+
+service MixService {
+    rpc getGlobalCovidDataByDate(MixInput) returns (MixOutput);
+}
+
+message MixInput {
+    optional int32 day = 1;
+    int32 month = 2;
+    int32 year = 3;
+}
+
+message MixResult {
+    string date = 1;
+    string vaxx_status = 2;
+    double pcr_done = 3;
+    double pcr_symptom = 4;
+    double pcr_positive = 5;
+    double pcr_symptom_positive = 6;
+    double hospital_entry = 7;
+    double hospital_entry_pcr_positive = 8;
+    double icu_entry = 9;
+    double icu_entry_pcr_positive = 10;
+    double death = 11;
+    double pcr_positive_death = 12;
+    int64 resident_population = 13;
+}
+
+message MixOutput {
+    repeated MixResult data = 1;
+}

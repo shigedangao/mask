@@ -31,6 +31,12 @@ impl From<std::io::Error> for MaskErr {
     }
 }
 
+impl From<std::num::ParseFloatError> for MaskErr {
+    fn from(err: std::num::ParseFloatError) -> Self {
+        MaskErr::QueryError(err.to_string())
+    }
+}
+
 impl From<MaskErr> for Status {
     fn from(err: MaskErr) -> Self {
         match err {

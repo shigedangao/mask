@@ -1,0 +1,22 @@
+syntax = "proto3";
+package icu;
+
+service IcuService {
+    rpc getFranceIcuLevelForNonVaxx(IcuInput) returns (IcuOutput);
+    rpc getFranceIcuLevelForVaxx(IcuInput) returns (IcuOutput);
+}
+
+message IcuInput {
+    optional int32 day = 1;
+    int32 month = 2;
+    int32 year = 3;
+}
+
+message IcuResult {
+    string day = 1;
+    double rate = 2;
+}
+
+message IcuOutput {
+    repeated IcuResult data = 1;
+}

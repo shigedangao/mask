@@ -71,7 +71,7 @@ impl PcrServiceRegion for PcrServiceHandle {
         request: Request<PcrInputRegion>
     ) -> Result<Response<PcrOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date() {
+        let date = match input.build_date_sql_like() {
             Some(res) => res,
             None => return Err(PcrErr::InvalidDate.into())
         };
@@ -94,7 +94,6 @@ impl PcrServiceRegion for PcrServiceHandle {
 /// * `region` - i32
 async fn get_pcr_test_by_region(pool: &PGPool, date: String, region: i32) -> Result<Vec<PcrResult>, PcrErr> {
     let mut tests = Vec::new();
-    let date = format!("{}%", date);
 
     let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM pcr_test_region WHERE jour LIKE $1 AND reg = $2")
         .bind(date)

@@ -5,7 +5,7 @@ use db::PGPool;
 use utils::Date;
 use crate::err::MaskErr;
 
-use super::proto_hospital::{CareStatusPayload, CareStatusInput, CareStatusOutput};
+use super::proto_hospital::{CareStatusResult, CareStatusInput, CareStatusOutput};
 use super::proto_hospital::care_status_server::CareStatus;
 
 // Hold a pool of connection
@@ -28,7 +28,7 @@ struct QueryResult {
     jour: Option<String>
 }
 
-impl From<QueryResult> for CareStatusPayload {
+impl From<QueryResult> for CareStatusResult {
     fn from(q: QueryResult) -> Self {
         Self {
             region: q.reg.unwrap_or_default(),
@@ -72,7 +72,7 @@ impl CareStatus for CareService {
         request: Request<CareStatusInput>
     ) -> Result<Response<CareStatusOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date() {
+        let date = match input.build_date_sql_like() {
             Some(date) => date,
             None => return Err(MaskErr::InvalidDate.into())
         };
@@ -92,17 +92,16 @@ impl CareStatus for CareService {
 /// # Arguments
 /// * `pool` - &PGPool
 /// * `input` - CareStatusInput
-async fn get_cases_by_day_and_region(pool: &PGPool, date: String, region: i32) -> Result<Vec<CareStatusPayload>, MaskErr> {
+async fn get_cases_by_day_and_region(pool: &PGPool, date: String, region: i32) -> Result<Vec<CareStatusResult>, MaskErr> {
     let mut cases = Vec::new();
-    let date_like = format!("{}%", date);
 
     let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM hospitalization WHERE jour LIKE $1 AND reg = $2")
-        .bind(date_like)
+        .bind(date)
         .bind(region)
         .fetch(pool);
 
     while let Some(row) = stream.try_next().await? {
-        let case = CareStatusPayload::from(row);
+        let case = CareStatusResult::from(row);
         cases.push(case);
     }
 

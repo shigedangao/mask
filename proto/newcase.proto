@@ -12,7 +12,7 @@ message CaseInput {
     int32 year = 4;
 }
 
-message NewCase {
+message CaseResult {
     string date = 1;
     int64 new_entry_hospital = 2;
     int64 new_entry_icu = 3;
@@ -21,5 +21,5 @@ message NewCase {
 }
 
 message NewCases {
-    repeated NewCase cases = 1;
+    repeated CaseResult cases = 1;
 }

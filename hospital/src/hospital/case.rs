@@ -4,7 +4,7 @@ use futures::TryStreamExt;
 use db::PGPool;
 use utils::Date;
 use crate::err::MaskErr;
-use super::proto_newcase::{CaseInput, NewCases, NewCase};
+use super::proto_newcase::{CaseInput, NewCases, CaseResult};
 use super::proto_newcase::case_service_server::CaseService;
 
 // import generated struct by tonic
@@ -22,7 +22,7 @@ struct QueryResult {
     incid_rad: Option<i64>
 }
 
-impl From<QueryResult> for NewCase {
+impl From<QueryResult> for CaseResult {
     fn from(q: QueryResult) -> Self {
         Self {
             date: q.jour.unwrap_or_default(),
@@ -61,7 +61,7 @@ impl CaseService for CaseServiceHandle {
         request: Request<CaseInput>
     ) -> Result<Response<NewCases>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date() {
+        let date = match input.build_date_sql_like() {
             Some(date) => date,
             None => return Err(MaskErr::InvalidDate.into())
         };        
@@ -82,17 +82,16 @@ impl CaseService for CaseServiceHandle {
 /// * `pool` - &PGPool
 /// * `date` - String
 /// * `department` - String 
-async fn get_new_cases_by_department(pool: &PGPool, date: String, department: String) -> Result<Vec<NewCase>, MaskErr> {
+async fn get_new_cases_by_department(pool: &PGPool, date: String, department: String) -> Result<Vec<CaseResult>, MaskErr> {
     let mut cases = Vec::new();
-    let date_like = format!("{}%", date);
 
     let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM cases WHERE jour LIKE $1 AND dep = $2")
-        .bind(date_like)
+        .bind(date)
         .bind(department)
         .fetch(pool);
 
     while let Some(row) = stream.try_next().await? {
-        cases.push(NewCase::from(row))
+        cases.push(CaseResult::from(row))
     }
     
     Ok(cases)
