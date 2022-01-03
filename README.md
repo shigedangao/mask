@@ -49,7 +49,9 @@ You can manually import the dataset by downloading the CSV files from these link
 - [Positive pcr test by department](https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675)
 - [Positive pcr test by region](https://www.data.gouv.fr/fr/datasets/r/001aca18-df6a-45c8-89e6-f82d689e6c01)
 - [Positivity cases per department for 100k daily](https://www.data.gouv.fr/fr/datasets/r/4180a181-a648-402b-92e4-f7574647afa6)
-' [Mix betweeen SI-VIC, SI-DEP & VAC-SI ⚠️ this dataset is not regularly updated...](https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/files_new/vacsi_non_vacsi_nat.csv)
+- [Mix betweeen SI-VIC, SI-DEP & VAC-SI ⚠️ this dataset is not regularly updated...](https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/files_new/vacsi_non_vacsi_nat.csv)
+- [Entry in ICU for unvax people / 1M](https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/dist/sc_non_vacsi.json)
+- [Entry in ICU for vax people / 1M](https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/dist/sc_vacsi.json)
 
 ### Import dataset automatically
 
