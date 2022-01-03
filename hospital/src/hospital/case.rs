@@ -61,7 +61,7 @@ impl CaseService for CaseServiceHandle {
         request: Request<CaseInput>
     ) -> Result<Response<NewCases>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date() {
+        let date = match input.build_date_sql_like() {
             Some(date) => date,
             None => return Err(MaskErr::InvalidDate.into())
         };        
@@ -84,10 +84,9 @@ impl CaseService for CaseServiceHandle {
 /// * `department` - String 
 async fn get_new_cases_by_department(pool: &PGPool, date: String, department: String) -> Result<Vec<NewCase>, MaskErr> {
     let mut cases = Vec::new();
-    let date_like = format!("{}%", date);
 
     let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM cases WHERE jour LIKE $1 AND dep = $2")
-        .bind(date_like)
+        .bind(date)
         .bind(department)
         .fetch(pool);
 

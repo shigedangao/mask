@@ -7,11 +7,14 @@ extern crate log;
 
 mod hospital;
 mod err;
+mod mix;
 
 use hospital::proto_newcase::case_service_server::CaseServiceServer;
 use hospital::proto_hospital::care_status_server::CareStatusServer;
 use hospital::status::CareService;
 use hospital::case::CaseServiceHandle;
+use mix::proto_mix::mix_service_server::MixServiceServer;
+use mix::mix::MixHandler;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -42,6 +45,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             pool: Arc::clone(&db_handle)
         }))
         .add_service(CaseServiceServer::new(CaseServiceHandle {
+            pool: Arc::clone(&db_handle)
+        }))
+        .add_service(MixServiceServer::new(MixHandler {
             pool: Arc::clone(&db_handle)
         }))
         .serve(addr)

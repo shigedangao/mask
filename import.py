@@ -115,6 +115,31 @@ def import_positivity_rate_per_department_by_day():
     {"dep": "string", "jour": "string", "p": int, "tx_std": float}
   )
 
+def import_data_mix():
+  download_csv(
+    'https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/files_new/vacsi_non_vacsi_nat.csv',
+    'data_mix.csv'
+  )
+  import_csv_to_sql(
+    'data_mix.csv',
+    'data_mix',
+    {
+      "date": "string",
+      "vac_statut": "string",
+      "nb_PCR": float,
+      "nb_PCR_sympt": float,
+      "nb_PCR+": float,
+      "nb_PCR+_sympt": float,
+      "HC": float,
+      "HC_PCR+": float,
+      "SC": float,
+      "SC_PCR+": float,
+      "DC": float,
+      "DC_PCR+": float,
+      "effectif": int
+    }
+  )
+
 # remove csv after import
 def delete_csv():
   os.remove('hospitalization_by_region.csv')
@@ -122,6 +147,7 @@ def delete_csv():
   os.remove('pcr_test_by_region.csv')
   os.remove('pcr_test_by_department.csv')
   os.remove('positivity_rate_by_department_per_day.csv')
+  os.remove('data_mix.csv')
 
 def main():
   import_hospital_cases()
@@ -129,6 +155,7 @@ def main():
   import_pcr_test_per_region()
   import_pcr_test_per_department()
   import_positivity_rate_per_department_by_day()
+  import_data_mix()
   delete_csv()  
 
 if __name__ == "__main__":

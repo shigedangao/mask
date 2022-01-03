@@ -72,7 +72,7 @@ impl CareStatus for CareService {
         request: Request<CareStatusInput>
     ) -> Result<Response<CareStatusOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date() {
+        let date = match input.build_date_sql_like() {
             Some(date) => date,
             None => return Err(MaskErr::InvalidDate.into())
         };
@@ -94,10 +94,9 @@ impl CareStatus for CareService {
 /// * `input` - CareStatusInput
 async fn get_cases_by_day_and_region(pool: &PGPool, date: String, region: i32) -> Result<Vec<CareStatusPayload>, MaskErr> {
     let mut cases = Vec::new();
-    let date_like = format!("{}%", date);
 
     let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM hospitalization WHERE jour LIKE $1 AND reg = $2")
-        .bind(date_like)
+        .bind(date)
         .bind(region)
         .fetch(pool);
 

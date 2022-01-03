@@ -65,7 +65,7 @@ impl PcrServiceDepartment for PcrServiceDepHandle {
         request: Request<PcrInputDepartment>
     ) -> Result<Response<PcrOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date() {
+        let date = match input.build_date_sql_like() {
             Some(d) => d,
             None => return Err(PcrErr::InvalidDate.into())
         };
@@ -88,10 +88,9 @@ impl PcrServiceDepartment for PcrServiceDepHandle {
 /// * `department` -String
 async fn get_pcr_test_by_department(pool: &PGPool, date: String, department: String) -> Result<Vec<PcrResult>, PcrErr> {
     let mut tests = Vec::new();
-    let sql_date_like = format!("{}%", date);
 
     let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM pcr_test_department WHERE jour LIKE $1 AND dep = $2")
-        .bind(sql_date_like)
+        .bind(date)
         .bind(department)
         .fetch(pool);
 

@@ -63,7 +63,7 @@ impl PositivityRate for PosServiceHandle {
         request: Request<PositivityInput>
     ) -> Result<Response<PositivityCollection>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date() {
+        let date = match input.build_date_sql_like() {
             Some(d) => d,
             None => return Err(PcrErr::InvalidDate.into())
         };
