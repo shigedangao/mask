@@ -8,3 +8,4 @@ keys/*.srl
 keys/*.key
 gen.sh
 *.csv
+__pycache__
