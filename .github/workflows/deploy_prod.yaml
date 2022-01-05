@@ -11,7 +11,7 @@ jobs:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
       file_path: Dockerfile_hospital
-      image_name: mask_hospital_staging
+      image_name: mask_hospital
     secrets:
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
@@ -19,7 +19,7 @@ jobs:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
       file_path: Dockerfile_pcr
-      image_name: mask_pcr_staging
+      image_name: mask_pcr
     secrets:
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
@@ -27,7 +27,7 @@ jobs:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
       file_path: Dockerfile_py
-      image_name: mask_python_staging
+      image_name: mask_python
     secrets:
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
