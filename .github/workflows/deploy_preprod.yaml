@@ -1,12 +1,9 @@
-name: build
+name: deploy preprod
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - staging
 
 jobs:
   hospital:
@@ -34,3 +31,12 @@ jobs:
     secrets:
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
+  
+  deploy_hospital:
+    needs: ["hospital"]
+    uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@staging
+    with:
+      app_name: hospital
+      env: preprod
+    secrets:
+      token: ${{ secrets.MASK_TOKEN }}
