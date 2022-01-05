@@ -1,36 +1,51 @@
-name: build
+name: deploy prod
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
-  hospital:
+  ####### build step ########
+  build_hospital:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
       file_path: Dockerfile_hospital
-      image_name: mask_hospital
+      image_name: mask_hospital_staging
     secrets:
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
-  pcr:
+  build_pcr:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
       file_path: Dockerfile_pcr
-      image_name: mask_pcr
+      image_name: mask_pcr_staging
     secrets:
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
-
   python:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
       file_path: Dockerfile_py
-      image_name: mask_python
+      image_name: mask_python_staging
     secrets:
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
+  ####### deployment step ########
+  deploy_hospital:
+    needs: ["build_hospital"]
+    uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@main
+    with:
+      app_name: hospital
+      env: preprod
+    secrets:
+      token: ${{ secrets.MASK_TOKEN }}
+
+  deploy_pcr:
+    needs: ["build_pcr"]
+    uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@main
+    with:
+      app_name: pcr
+      env: preprod
+    secrets:
+      token: ${{ secrets.MASK_TOKEN }}

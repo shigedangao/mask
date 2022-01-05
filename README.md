@@ -89,6 +89,24 @@ If you use bloom rpc for testing purposes. You can uses the same cert and key to
   <img src="bloom.png" />
 </p>
 
+### Using grpcurl
+
+1. Download grpcurl with the command
+
+```bash
+curl -LO https://github.com/fullstorydev/grpcurl/releases/download/v1.8.5/grpcurl_1.8.5_linux_x86_64.tar.gz 
+```
+
+```bash
+tar -xvf grpcurl_1.8.5_linux_x86_64.tar.gz
+```
+
+```bash
+./grpcurl -cacert <path to ca cert>/ca-cert.pem \
+    -d '{"day": 19, "month": 10, "year": 2021}' \
+    <endpoint>:9000 icu.IcuService/getFranceIcuLevelForNonVaxx
+```
+
 ### Run the hospital service
 
 Go to the hospital folder and run the command
