@@ -37,7 +37,7 @@ jobs:
     uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@main
     with:
       app_name: hospital
-      env: preprod
+      env: prod
     secrets:
       token: ${{ secrets.MASK_TOKEN }}
 
@@ -46,6 +46,6 @@ jobs:
     uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@main
     with:
       app_name: pcr
-      env: preprod
+      env: prod
     secrets:
       token: ${{ secrets.MASK_TOKEN }}
