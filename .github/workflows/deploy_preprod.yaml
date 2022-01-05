@@ -40,7 +40,6 @@ jobs:
       env: preprod
     secrets:
       token: ${{ secrets.MASK_TOKEN }}
-
   deploy_pcr:
     needs: ["build_pcr"]
     uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@staging

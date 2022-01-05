@@ -28,7 +28,7 @@ jobs:
               "ref": "main",
               "inputs": {
                 "tag": "'$git_hash'",
-                "app_name": "${{ inputs.app_name}}",
+                "app_name": "${{ inputs.app_name }}",
                 "env": "${{ inputs.env }}"
               }
             }'
