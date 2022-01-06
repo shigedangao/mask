@@ -40,12 +40,20 @@ jobs:
       env: prod
     secrets:
       token: ${{ secrets.MASK_TOKEN }}
-
   deploy_pcr:
     needs: ["build_pcr"]
     uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@main
     with:
       app_name: pcr
       env: prod
+    secrets:
+      token: ${{ secrets.MASK_TOKEN }}
+  deploy_import:
+    needs: ["build_python"]
+    uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@main
+    with:
+      app_name: import
+      env: prod
+      workflow: deploy_cronjob
     secrets:
       token: ${{ secrets.MASK_TOKEN }}
