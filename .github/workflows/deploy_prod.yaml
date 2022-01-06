@@ -53,7 +53,7 @@ jobs:
     uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@main
     with:
       app_name: import
-      env: preprod
+      env: prod
       workflow: deploy_cronjob
     secrets:
       token: ${{ secrets.MASK_TOKEN }}
