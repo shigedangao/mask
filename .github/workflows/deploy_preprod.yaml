@@ -48,3 +48,12 @@ jobs:
       env: preprod
     secrets:
       token: ${{ secrets.MASK_TOKEN }}
+  deploy_import:
+    needs: ["build_python"]
+    uses: shigedangao/mask/.github/workflows/reusable-dispatch.yaml@staging
+    with:
+      app_name: import
+      env: preprod
+      workflow: deploy_cronjob
+    secrets:
+      token: ${{ secrets.MASK_TOKEN }}
