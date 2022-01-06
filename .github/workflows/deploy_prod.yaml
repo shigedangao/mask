@@ -23,7 +23,7 @@ jobs:
     secrets:
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account_name: ${{ secrets.SERVICE_ACCOUNT_NAME }}
-  python:
+  build_python:
     uses: shigedangao/mask/.github/workflows/reusable-build-image.yaml@main
     with:
       file_path: Dockerfile_py
