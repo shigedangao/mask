@@ -1,9 +1,11 @@
 use std::sync::Arc;
-use futures::TryStreamExt;
-use db::PGPool;
+use db::{PGPool, query};
+use sqlx::{
+    postgres::PgRow,
+    Row
+};
 use tonic::{Request, Response, Status};
 use utils::Date;
-
 use crate::err::PcrErr;
 
 use super::proto::{
@@ -15,14 +17,28 @@ pub struct PcrServiceDepHandle {
     pub pool: Arc<PGPool>
 }
 
-#[derive(sqlx::FromRow, Debug)]
-pub struct QueryResult {
-    dep: Option<String>,
-    jour: Option<String>,
-    pop: Option<f64>,
-    t: Option<i64>,
-    p: Option<i64>,
-    cl_age90: Option<i64>
+impl TryFrom<PgRow> for PcrResult {
+    type Error = sqlx::Error;
+
+    fn try_from(value: PgRow) -> Result<Self, Self::Error> {
+        let res = Self {
+            department: value.try_get("dep").unwrap_or_default(),
+            day: value.try_get("jour").unwrap_or_default(),
+            population_by_department: value.try_get("pop").unwrap_or_default(),
+            total_pcr_test_done: value.try_get("t").unwrap_or_default(),
+            total_positive_pcr_test: value.try_get("p").unwrap_or_default(),
+            age: value.try_get("cl_age90").unwrap_or_default(),
+            // usually used by region
+            positive_pcr_test_female: value.try_get("p_f").unwrap_or_default(),
+            positive_pcr_test_male: value.try_get("p_h").unwrap_or_default(),
+            pcr_test_female: value.try_get("t_f").unwrap_or_default(),
+            pcr_test_male: value.try_get("t_h").unwrap_or_default(),
+            region: value.try_get("reg").unwrap_or_default(),
+            population_by_region: value.try_get("pop").unwrap_or_default()
+        };
+
+        Ok(res)
+    }
 }
 
 impl Date for PcrInputDepartment {
@@ -36,20 +52,6 @@ impl Date for PcrInputDepartment {
 
     fn get_day(&self) -> Option<i32> {
         self.day
-    }
-}
-
-impl From<QueryResult> for PcrResult {
-    fn from(q: QueryResult) -> Self {
-        Self {
-            department: q.dep,
-            day: q.jour.unwrap_or_default(),
-            population_by_department: q.pop,
-            total_positive_pcr_test: q.p,
-            total_pcr_test_done: q.t,
-            age: q.cl_age90.unwrap_or_default(),
-            ..Default::default()
-        }
     }
 }
 
@@ -70,7 +72,12 @@ impl PcrServiceDepartment for PcrServiceDepHandle {
             None => return Err(PcrErr::InvalidDate.into())
         };
 
-        match get_pcr_test_by_department(&self.pool, date, input.department).await {
+        match query::get_all_by_date_and_gen_field::<PcrResult, &str>(
+            &self.pool,
+            "SELECT * FROM pcr_test_department WHERE jour LIKE $1 AND dep = $2",
+            &date,
+            &input.department
+        ).await {
             Ok(pcr) => Ok(Response::new(PcrOutput { pcr })),
             Err(err) => {
                 error!("fetch pcr by department {:?}", err);
@@ -80,43 +87,9 @@ impl PcrServiceDepartment for PcrServiceDepHandle {
     }
 }
 
-/// Retrieve pcr test by department
-/// 
-/// # Arguments
-/// * `pool` - &PGPool
-/// * `date` - String
-/// * `department` -String
-async fn get_pcr_test_by_department(pool: &PGPool, date: String, department: String) -> Result<Vec<PcrResult>, PcrErr> {
-    let mut tests = Vec::new();
-
-    let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM pcr_test_department WHERE jour LIKE $1 AND dep = $2")
-        .bind(date)
-        .bind(department)
-        .fetch(pool);
-
-    while let Some(row) = stream.try_next().await? {
-        let test = PcrResult::from(row);
-        tests.push(test) 
-    }
-    
-    Ok(tests)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn expect_to_query_dep_pcr_case() {
-        let pool = db::connect("../config.toml").await.unwrap();
-        let res = get_pcr_test_by_department(
-            &pool,
-            "2021-12-20".to_string(),
-            "75".to_string()
-        ).await;
-
-        assert!(res.is_ok());
-    }
 
     #[tokio::test]
     async fn expect_grpc_to_return_response() {
