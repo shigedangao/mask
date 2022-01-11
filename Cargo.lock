@@ -773,7 +773,6 @@ name = "mask"
 version = "0.1.0"
 dependencies = [
  "db",
- "futures",
  "log",
  "prost",
  "sqlx",
@@ -1009,7 +1008,6 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "db",
- "futures",
  "log",
  "prost",
  "sqlx",
