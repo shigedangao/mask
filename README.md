@@ -18,7 +18,7 @@ Data comes from the website [data.gouv.fr](https://data.gouv.fr/). I also used d
 
 - [Positive pcr test by department (sp-pos-quot-dep-<date>)](https://www.data.gouv.fr/fr/datasets/r/406c6a23-e283-4300-9484-54e78c8ae675)
 - [Positive pcr test by region (sp-pos-quot-reg-<date>)](https://www.data.gouv.fr/fr/datasets/r/001aca18-df6a-45c8-89e6-f82d689e6c01)
-- [Positivity cases per department for 100k daily](https://www.data.gouv.fr/fr/datasets/r/4180a181-a648-402b-92e4-f7574647afa6)
+- [Incidences cases per department for 100k daily (sp-pe-std-quot-dep-<date>)](https://www.data.gouv.fr/fr/datasets/r/4180a181-a648-402b-92e4-f7574647afa6)
 
 # Contributing
 
