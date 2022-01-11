@@ -37,6 +37,12 @@ impl From<std::num::ParseFloatError> for MaskErr {
     }
 }
 
+impl From<db::err::DBError> for MaskErr {
+    fn from(err: db::err::DBError) -> Self {
+        MaskErr::QueryError(err.to_string())
+    }
+}
+
 impl From<MaskErr> for Status {
     fn from(err: MaskErr) -> Self {
         match err {

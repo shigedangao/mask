@@ -3,7 +3,8 @@ use sqlx::{postgres::{PgPoolOptions}, Postgres, Pool};
 use toml::Value;
 use std::fs;
 
-mod err;
+pub mod err;
+pub mod query;
 
 pub type PGPool = Pool<Postgres>;
 

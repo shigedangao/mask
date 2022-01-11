@@ -1,8 +1,11 @@
 use std::sync::Arc;
-use db::PGPool;
+use db::{PGPool, query};
+use sqlx::{
+    postgres::PgRow,
+    Row
+};
 use tonic::{Request, Response, Status};
 use utils::Date;
-use futures::TryStreamExt;
 use crate::err::MaskErr;
 use super::proto_mix::mix_service_server::MixService;
 use super::proto_mix::{MixInput, MixOutput, MixResult};
@@ -11,45 +14,27 @@ pub struct MixHandler {
     pub pool: Arc<PGPool>
 }
 
-#[derive(sqlx::FromRow, Debug)]
-struct QueryResult {
-    date: String,
-    vac_statut: String,
-    nb_pcr: f64,
-    nb_pcr_sympt: f64,
-    #[sqlx(rename = "nb_pcr+")]
-    pcr_positive: f64,
-    #[sqlx(rename = "nb_pcr+_sympt")]
-    pcr_symptom_positive: f64,
-    hc: f64,
-    #[sqlx(rename = "hc_pcr+")]
-    hospital_entry_pcr_positive: f64,
-    sc: f64,
-    #[sqlx(rename = "sc_pcr+")]
-    icu_entry_pcr_positive: f64,
-    dc: f64,
-    #[sqlx(rename = "dc_pcr+")]
-    pcr_positive_death: f64,
-    effectif: i64
-}
+impl TryFrom<PgRow> for MixResult {
+    type Error = sqlx::Error;
 
-impl From<QueryResult> for MixResult {
-    fn from(q: QueryResult) -> Self {
-        Self {
-            date: q.date,
-            vaxx_status: q.vac_statut,
-            pcr_done: q.nb_pcr,
-            pcr_symptom: q.nb_pcr_sympt,
-            pcr_positive: q.pcr_positive,
-            pcr_symptom_positive: q.pcr_symptom_positive,
-            hospital_entry: q.hc,
-            hospital_entry_pcr_positive: q.hospital_entry_pcr_positive,
-            icu_entry: q.sc,
-            icu_entry_pcr_positive: q.icu_entry_pcr_positive,
-            death: q.dc,
-            pcr_positive_death: q.pcr_positive_death,
-            resident_population: q.effectif
-        }
+    fn try_from(value: PgRow) -> Result<Self, Self::Error> {
+        let res = Self {
+            date: value.try_get("date")?,
+            vaxx_status: value.try_get("vac_statut")?,
+            pcr_done: value.try_get("nb_pcr")?,
+            pcr_symptom: value.try_get("nb_pcr_sympt")?,
+            pcr_positive: value.try_get("nb_pcr+")?,
+            pcr_symptom_positive: value.try_get("nb_pcr+_sympt")?,
+            hospital_entry: value.try_get("hc")?,
+            hospital_entry_pcr_positive: value.try_get("hc_pcr+")?,
+            icu_entry: value.try_get("sc")?,
+            icu_entry_pcr_positive: value.try_get("sc_pcr+")?,
+            death: value.try_get("dc")?,
+            pcr_positive_death: value.try_get("dc_pcr+")?,
+            resident_population: value.try_get("effectif")?
+        };
+
+        Ok(res)
     }
 }
 
@@ -85,7 +70,11 @@ impl MixService for MixHandler {
             None => return Err(MaskErr::InvalidDate.into())
         };
 
-        match get_global_cases_by_date(&self.pool, date).await {
+        match query::get_all_by_date_only::<MixResult>(
+            &self.pool,
+            "SELECT * FROM data_mix WHERE date LIKE $1",
+            &date
+        ).await {
             Ok(data) => Ok(Response::new(MixOutput { data })),
             Err(err) => {
                 error!("fetch covid mix data error: {:?}", err);
@@ -95,39 +84,9 @@ impl MixService for MixHandler {
     }
 }
 
-/// Query the database to get the mix covid cases
-/// 
-/// # Arguments
-/// * `pool` - &PGPool
-/// * `date` - String
-async fn get_global_cases_by_date(pool: &PGPool, date: String) -> Result<Vec<MixResult>, MaskErr> {
-    let mut data = Vec::new();
-    
-    let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM data_mix WHERE date LIKE $1")
-        .bind(date)
-        .fetch(pool);
-
-    while let Some(row) = stream.try_next().await? {
-        data.push(MixResult::from(row));
-    }
-
-    Ok(data)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn expect_to_query_cases() {
-        let pool = db::connect("../config.toml").await.unwrap();
-        let res = get_global_cases_by_date(
-            &pool,
-            "2021-10-10".to_string()
-        ).await;
-
-        assert!(res.is_ok());
-    }
 
     #[tokio::test]
     async fn expect_grpc_to_return_response() {
