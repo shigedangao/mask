@@ -1,7 +1,7 @@
 use std::sync::Arc;
-use db::PGPool;
+use db::{PGPool, query};
+use sqlx::{postgres::PgRow, Row};
 use tonic::{Request, Response, Status};
-use futures::TryStreamExt;
 use crate::err::PcrErr;
 use super::proto::{
     positivity_rate_server::PositivityRate,
@@ -14,15 +14,6 @@ use utils::Date;
 
 pub struct PosServiceHandle {
     pub pool: Arc<PGPool>
-}
-
-#[derive(sqlx::FromRow, Debug)]
-struct QueryResult {
-    dep: Option<String>,
-    jour: Option<String>,
-    pop: Option<i64>,
-    p: Option<i64>,
-    tx_std: Option<f64>
 }
 
 impl Date for PositivityInput {
@@ -39,15 +30,19 @@ impl Date for PositivityInput {
     }
 }
 
-impl From<QueryResult> for PositivityDayResult {
-    fn from(q: QueryResult) -> Self {
-        Self {
-            department: q.dep.unwrap_or_default(),
-            day: q.jour.unwrap_or_default(),
-            population_reference: q.pop.unwrap_or_default(),
-            pcr_positive: q.p.unwrap_or_default(),
-            infection_rate: q.tx_std.unwrap_or_default()
-        }
+impl TryFrom<PgRow> for PositivityDayResult {
+    type Error = sqlx::Error;
+
+    fn try_from(value: PgRow) -> Result<Self, Self::Error> {
+        let res = Self {
+            department: value.try_get("dep")?,
+            day: value.try_get("jour")?,
+            population_reference: value.try_get("pop")?,
+            pcr_positive: value.try_get("p")?,
+            infection_rate: value.try_get("tx_std")?
+        };
+
+        Ok(res)
     }
 }
 
@@ -68,7 +63,12 @@ impl PositivityRate for PosServiceHandle {
             None => return Err(PcrErr::InvalidDate.into())
         };
 
-        match get_positivity_per_day(&self.pool, &date, &input.department).await {
+        match query::get_all_by_date_and_gen_field::<PositivityDayResult, &str>(
+            &self.pool,
+            "SELECT * FROM positivity_rate_per_dep_by_day WHERE jour LIKE $1 AND dep = $2",
+            &date,
+            &input.department
+        ).await {
             Ok(rates) => Ok(Response::new(PositivityCollection { rates })),
             Err(err) => {
                 error!("fetch positivity cases {:?}", err);
@@ -110,29 +110,6 @@ impl PositivityRate for PosServiceHandle {
     }
 }
 
-/// SQL query to get the positivity per day
-/// 
-/// # Arguments
-/// * `pool` - &PGPool
-/// * `date` - &str
-/// * `department` - &str
-async fn get_positivity_per_day(pool: &PGPool, date: &str, department: &str) -> Result<Vec<PositivityDayResult>, PcrErr> {
-    let mut rates = Vec::new();
-    let formatted_date = format!("{}%", date);
-
-    let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM positivity_rate_per_dep_by_day WHERE jour LIKE $1 AND dep = $2")
-        .bind(formatted_date)
-        .bind(department)
-        .fetch(pool);
-
-    while let Some(row) = stream.try_next().await? {
-        let test = PositivityDayResult::from(row);
-        rates.push(test) 
-    }
-
-    Ok(rates)
-}
-
 /// SQL query to get the positivity per week
 /// 
 /// # Arguments
@@ -145,14 +122,14 @@ async fn get_positivity_for_week(pool: &PGPool, dates: Vec<String>, department: 
         // @Warning
         // We can't query the date between 2 date as they're string...
         // It would be nice to convert the date to a datetime on the import.py script.
-        let res: Result<QueryResult, sqlx::Error> = sqlx::query_as("SELECT * FROM positivity_rate_per_dep_by_day WHERE jour = $1 AND dep = $2")
+        let res: Result<PgRow, sqlx::Error> = sqlx::query("SELECT * FROM positivity_rate_per_dep_by_day WHERE jour = $1 AND dep = $2")
             .bind(date)
             .bind(&department)
             .fetch_one(pool)
             .await;
 
         match res {
-            Ok(data) => rates.push(PositivityDayResult::from(data)),
+            Ok(data) => rates.push(PositivityDayResult::try_from(data)?),
             Err(err) => {
                 match err {
                     sqlx::error::Error::RowNotFound => continue,
@@ -180,18 +157,6 @@ fn calculate_positivity_per_week(cases: &[PositivityDayResult]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn expect_to_retrieve_positivity_per_day() {
-        let pool = db::connect("../config.toml").await.unwrap();
-        let res = get_positivity_per_day(
-            &pool,
-            "2021-12-10",
-            "77"
-        ).await;
-
-        assert!(res.is_ok());
-    }
 
     #[tokio::test]
     async fn expect_grpc_to_return_positivity_per_day_ok() {

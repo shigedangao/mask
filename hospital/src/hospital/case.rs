@@ -1,36 +1,33 @@
+use sqlx::Row;
+use sqlx::postgres::PgRow;
 use tonic::{Request, Response, Status};
 use std::sync::Arc;
-use futures::TryStreamExt;
 use db::PGPool;
+use db::query;
 use utils::Date;
 use crate::err::MaskErr;
-use super::proto_newcase::{CaseInput, NewCases, CaseResult};
-use super::proto_newcase::case_service_server::CaseService;
 
 // import generated struct by tonic
+use super::proto_newcase::{CaseInput, NewCases, CaseResult};
+use super::proto_newcase::case_service_server::CaseService;
 
 pub struct CaseServiceHandle {
     pub pool: Arc<PGPool>
 }
 
-#[derive(sqlx::FromRow, Debug)]
-struct QueryResult {
-    jour: Option<String>,
-    incid_hosp: Option<i64>,
-    incid_rea: Option<i64>,
-    incid_dc: Option<i64>,
-    incid_rad: Option<i64>
-}
+impl TryFrom<PgRow> for CaseResult {
+    type Error = sqlx::Error;
 
-impl From<QueryResult> for CaseResult {
-    fn from(q: QueryResult) -> Self {
-        Self {
-            date: q.jour.unwrap_or_default(),
-            new_entry_hospital: q.incid_hosp.unwrap_or_default(),
-            new_entry_icu: q.incid_rea.unwrap_or_default(),
-            death: q.incid_dc.unwrap_or_default(),
-            healed: q.incid_rad.unwrap_or_default()
-        }
+    fn try_from(value: PgRow) -> Result<Self, Self::Error> {
+        let res = Self {
+            date: value.try_get("jour")?,
+            new_entry_hospital: value.try_get("incid_hosp")?,
+            new_entry_icu: value.try_get("incid_rea")?,
+            death: value.try_get("incid_dc")?,
+            healed: value.try_get("incid_rad")?
+        };
+
+        Ok(res)
     }
 }
 
@@ -64,9 +61,14 @@ impl CaseService for CaseServiceHandle {
         let date = match input.build_date_sql_like() {
             Some(date) => date,
             None => return Err(MaskErr::InvalidDate.into())
-        };        
+        };
 
-        match get_new_cases_by_department(&self.pool, date, input.department).await {
+        match query::get_all_by_date_and_gen_field::<CaseResult, String>(
+            &self.pool,
+            "SELECT * FROM cases WHERE jour LIKE $1 AND dep = $2",
+            &date,
+            input.department
+        ).await {
             Ok(cases) => Ok(Response::new(NewCases { cases })),
             Err(err) => {
                 error!("fetch new cases error: {:?}", err);
@@ -76,42 +78,9 @@ impl CaseService for CaseServiceHandle {
     }
 }
 
-/// Query the database to get the new cases rate in hospital by department
-/// 
-/// # Arguments
-/// * `pool` - &PGPool
-/// * `date` - String
-/// * `department` - String 
-async fn get_new_cases_by_department(pool: &PGPool, date: String, department: String) -> Result<Vec<CaseResult>, MaskErr> {
-    let mut cases = Vec::new();
-
-    let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM cases WHERE jour LIKE $1 AND dep = $2")
-        .bind(date)
-        .bind(department)
-        .fetch(pool);
-
-    while let Some(row) = stream.try_next().await? {
-        cases.push(CaseResult::from(row))
-    }
-    
-    Ok(cases)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn expect_to_query_new_cases() {
-        let pool = db::connect("../config.toml").await.unwrap();
-        let res = get_new_cases_by_department(
-            &pool,
-            "2021-12-12".to_owned(),
-            "77".to_owned()
-        ).await;
-
-        assert!(res.is_ok());
-    }
 
     #[tokio::test]
     async fn expect_grpc_to_return_response() {
