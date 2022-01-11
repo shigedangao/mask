@@ -14,7 +14,6 @@ tokio = { version = "1.15", features = ["full"] }
 sqlx = { version = "0.5", features = [ "runtime-tokio-native-tls" , "postgres" ] }
 db = { path = "../db" }
 utils = { path = "../utils" }
-futures = "0.3"
 chrono = "0.4"
 
 [build-dependencies]

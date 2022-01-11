@@ -1,8 +1,11 @@
 use std::sync::Arc;
-use db::PGPool;
+use db::{PGPool, query};
+use sqlx::{
+    postgres::PgRow,
+    Row
+};
 use tonic::{Request, Response, Status};
 use utils::Date;
-use futures::TryStreamExt;
 use crate::err::MaskErr;
 use super::proto_icu::icu_service_server::IcuService;
 use super::proto_icu::{IcuInput, IcuOutput, IcuResult};
@@ -11,20 +14,19 @@ pub struct IcuHandler {
     pub pool: Arc<PGPool>
 }
 
-#[derive(sqlx::FromRow, Debug)]
-struct QueryResult {
-    value: String,
-    date: String
-}
+impl TryFrom<PgRow> for IcuResult {
+    type Error = sqlx::Error;
 
-impl TryFrom<QueryResult> for IcuResult {
-    type Error = MaskErr;
-    
-    fn try_from(q: QueryResult) -> Result<Self, Self::Error> {
-        Ok(Self {
-            day: q.date,
-            rate: q.value.parse::<f64>()?
-        })
+    fn try_from(value: PgRow) -> Result<Self, Self::Error> {
+        // value is saved a string in the database
+        let rate: String = value.try_get("value")?;
+
+        let res = Self {
+            day: value.try_get("date")?,
+            rate: rate.parse::<f64>().unwrap_or_default()
+        };
+
+        Ok(res)
     }
 }
 
@@ -60,11 +62,15 @@ impl IcuService for IcuHandler {
             None => return Err(MaskErr::InvalidDate.into())
         };
 
-        match get_icu_level_by_date(&self.pool, "unvaxx", date).await {
+        match query::get_all_by_date_only(
+            &self.pool,
+            "SELECT * FROM unvaxx WHERE date LIKE $1",
+            &date
+        ).await {
             Ok(data) => Ok(Response::new(IcuOutput { data })),
             Err(err) => {
-                error!("fetch non vaxx error {:?}", err);
-                Err(err.into())
+                error!("fetch unvaccinated people error {:?}", err);
+                Err(MaskErr::from(err).into())
             }
         }
     }
@@ -84,51 +90,23 @@ impl IcuService for IcuHandler {
             None => return Err(MaskErr::InvalidDate.into())
         };
 
-        match get_icu_level_by_date(&self.pool, "vaxx", date).await {
+        match query::get_all_by_date_only(
+            &self.pool,
+            "SELECT * FROM vaxx WHERE date LIKE $1",
+            &date
+        ).await {
             Ok(data) => Ok(Response::new(IcuOutput { data })),
             Err(err) => {
-                error!("fetch vaxx error {:?}", err);
-                Err(err.into())
+                error!("fetch vaccinated people error {:?}", err);
+                Err(MaskErr::from(err).into())
             }
         }
     }
 }
 
-/// Get the level of ICU for vaxx / non vaxx
-/// 
-/// # Arguments
-/// * `pool` - &PGPool
-/// * `table` - &str
-/// * `date` - String
-async fn get_icu_level_by_date(pool: &PGPool, table: &str, date: String) -> Result<Vec<IcuResult>, MaskErr> {
-    let mut data = Vec::new();
-    let query = format!("SELECT * FROM {} WHERE date LIKE $1", table);
-    let mut stream = sqlx::query_as::<_, QueryResult>(&query)
-        .bind(date)
-        .fetch(pool);
-
-    while let Some(row) = stream.try_next().await? {
-        data.push(IcuResult::try_from(row)?);
-    }
-
-    Ok(data)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn expect_to_query_level() {
-        let pool = db::connect("../config.toml").await.unwrap();
-        let res = get_icu_level_by_date(
-            &pool, 
-            "unvaxx", 
-            "2021-12-10".to_owned()
-        ).await;
-
-        assert!(res.is_ok());
-    }
 
     #[tokio::test]
     async fn expect_grpc_to_return_response_for_unvaxx() {

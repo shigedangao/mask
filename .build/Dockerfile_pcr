@@ -26,7 +26,8 @@ ARG APP=/usr/src/app
 RUN apt-get purge ca-certificates
 RUN apt-get update && apt-get install -y openssl \
     ca-certificates \
-    wget
+    wget \
+    procps
 
 RUN useradd ferris
 

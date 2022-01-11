@@ -1,8 +1,10 @@
+
 #[derive(Debug)]
 pub enum DBError {
     MissingEnv(String),
     IO(String),
-    Connection(String)
+    Connection(String),
+    Exec,
 }
 
 impl std::error::Error for DBError {}
@@ -12,7 +14,8 @@ impl std::fmt::Display for DBError {
         match &self {
             DBError::MissingEnv(msg) => write!(f, "Unable to build database uri. Error: {}", msg),
             DBError::IO(msg) => write!(f, "Unable to perform IO operation, {}", msg),
-            DBError::Connection(msg) => write!(f, "Unable to connect to the database, reason: {}", msg)
+            DBError::Connection(msg) => write!(f, "Unable to connect to the database, reason: {}", msg),
+            DBError::Exec => write!(f, "Error while parsing result")
         }
     }
 }
@@ -34,3 +37,4 @@ impl From<sqlx::Error> for DBError {
         DBError::Connection(err.to_string())
     }
 }
+

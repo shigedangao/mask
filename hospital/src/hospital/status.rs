@@ -1,7 +1,10 @@
 use std::sync::Arc;
+use sqlx::{
+    postgres::{PgRow},
+    Row
+};
 use tonic::{Request, Response, Status};
-use futures::TryStreamExt;
-use db::PGPool;
+use db::{PGPool, query};
 use utils::Date;
 use crate::err::MaskErr;
 
@@ -14,34 +17,24 @@ pub struct CareService {
     pub pool: Arc<PGPool>
 }
 
-#[derive(sqlx::FromRow, Debug)]
-struct QueryResult {
-    reg: Option<i64>,
-    cl_age90: Option<i64>,
-    hosp: Option<i64>,
-    rea: Option<i64>,
-    hospconv: Option<f64>,
-    ssr_usld: Option<f64>,
-    autres: Option<f64>,
-    rad: Option<i64>,
-    dc: Option<i64>,
-    jour: Option<String>
-}
+impl TryFrom<PgRow> for CareStatusResult {
+    type Error = sqlx::Error;
 
-impl From<QueryResult> for CareStatusResult {
-    fn from(q: QueryResult) -> Self {
-        Self {
-            region: q.reg.unwrap_or_default(),
-            age: q.cl_age90.unwrap_or_default(),
-            hospitalization: q.hosp.unwrap_or_default(),
-            icu: q.rea.unwrap_or_default(),
-            healed: q.rad.unwrap_or_default(),
-            death: q.dc.unwrap_or_default(),
-            different_care_services: q.ssr_usld,
-            conventional_care: q.hospconv,
-            other_care_district: q.autres,
-            day: q.jour.unwrap_or_default()
-        }
+    fn try_from(value: PgRow) -> Result<Self, Self::Error> {
+        let res = Self {
+            region: value.try_get("reg")?,
+            age: value.try_get("cl_age90")?,
+            hospitalization: value.try_get("hosp").unwrap_or_default(),
+            icu: value.try_get("rea").unwrap_or_default(),
+            healed: value.try_get("rad").unwrap_or_default(),
+            death: value.try_get("dc").unwrap_or_default(),
+            different_care_services: value.try_get("ssr_usld").unwrap_or_default(),
+            conventional_care: value.try_get("hospconv").unwrap_or_default(),
+            other_care_district: value.try_get("autres").unwrap_or_default(),
+            day: value.try_get("jour")?
+        };
+
+        Ok(res)
     }
 }
 
@@ -77,7 +70,12 @@ impl CareStatus for CareService {
             None => return Err(MaskErr::InvalidDate.into())
         };
 
-        match get_cases_by_day_and_region(&self.pool, date, input.region).await {
+        match query::get_all_by_date_and_gen_field::<CareStatusResult, i32>(
+            &self.pool,
+            "SELECT * FROM hospitalization WHERE jour LIKE $1 AND reg = $2",
+            &date,
+            input.region
+        ).await {
             Ok(cases) => Ok(Response::new(CareStatusOutput { cases })),
             Err(err) => {
                 error!("fetch hospitalization {:?}", err);
@@ -87,42 +85,9 @@ impl CareStatus for CareService {
     }
 }
 
-/// Query the database to get the hospitalization rate for a day and a region
-/// 
-/// # Arguments
-/// * `pool` - &PGPool
-/// * `input` - CareStatusInput
-async fn get_cases_by_day_and_region(pool: &PGPool, date: String, region: i32) -> Result<Vec<CareStatusResult>, MaskErr> {
-    let mut cases = Vec::new();
-
-    let mut stream = sqlx::query_as::<_, QueryResult>("SELECT * FROM hospitalization WHERE jour LIKE $1 AND reg = $2")
-        .bind(date)
-        .bind(region)
-        .fetch(pool);
-
-    while let Some(row) = stream.try_next().await? {
-        let case = CareStatusResult::from(row);
-        cases.push(case);
-    }
-
-    Ok(cases)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[tokio::test]
-    async fn expect_to_query_hospitalization_rate() {
-        let pool = db::connect("../config.toml").await.unwrap();
-        let res = get_cases_by_day_and_region(
-            &pool, 
-            "2021-12-12".to_owned(), 
-            11
-        ).await;
-
-        assert!(res.is_ok());
-    }
 
     #[tokio::test]
     async fn expect_grpc_to_return_response() {
