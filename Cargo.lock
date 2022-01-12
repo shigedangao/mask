@@ -792,7 +792,6 @@ dependencies = [
  "tokio",
  "tonic",
  "tonic-build",
- "tonic-health",
  "utils",
 ]
 
