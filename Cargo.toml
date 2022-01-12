@@ -3,6 +3,7 @@
 members = [
     "hospital",
     "db",
+    "health",
     "pcr",
     "utils"
 ]

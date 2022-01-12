@@ -7,6 +7,7 @@ RUN USER=root cargo new --bin pcr
 COPY ./db ./db
 COPY ./utils ./utils
 COPY ./proto ./proto
+COPY ./health ./health
 COPY ./pcr ${APP_PATH}
 # copy lock
 COPY ./Cargo.lock ${APP_PATH}
@@ -29,7 +30,7 @@ RUN apt-get update && apt-get install -y openssl \
     wget \
     procps
 
-# RUN useradd ferris
+RUN useradd ferris
 
 COPY --from=builder /pcr/target/release/pcr ${APP}/pcr
 
@@ -39,6 +40,6 @@ RUN GRPC_HEALTH_PROBE_VERSION=v0.4.6 && \
     wget -qO/bin/grpc_health_probe https://github.com/grpc-ecosystem/grpc-health-probe/releases/download/${GRPC_HEALTH_PROBE_VERSION}/grpc_health_probe-linux-amd64 && \
     chmod +x /bin/grpc_health_probe
 
-# USER ferris
+USER ferris
 
 CMD ["./pcr"]

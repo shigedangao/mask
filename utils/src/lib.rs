@@ -7,28 +7,33 @@ use chrono::{NaiveDate, Datelike, Duration};
 /// 
 /// # Arguments
 /// * `port` - i32
-pub fn setup_services(name: &str, port: i32) -> Result<String> {
-    // set RUST_LOG based on the environment variable
-    let (log_level, addr) = match std::env::var("rust_env") {
-        Ok(res) => {
-            if res == "prod" {
-                (format!("{}=info", name), format!("0.0.0.0:{}", port))
-            } else {
-                (format!("{}=info", name), format!("127.0.0.1:{}", port))
-            }
-        },
-        Err(_) => ("info".to_owned(), format!("127.0.0.1:{}", port))
-    };
-
+pub fn setup_services(name: &str) -> Result<()> {
     // set environment variable for log debugging
-    std::env::set_var("RUST_LOG", log_level);
+    std::env::set_var("RUST_LOG", format!("{}=info", name));
     std::env::set_var("RUST_BACKTRACE", "1");
 
     color_eyre::install()?;
     env_logger::init();
 
-    Ok(addr)
+    Ok(())
 }
+
+/// Generate the server address
+/// 
+/// # Arguments
+/// * `port` - i32
+pub fn get_server_addr(port: i32) -> String {
+    match std::env::var("rust_env") {
+        Ok(res) => {
+            if res == "prod" {
+                format!("0.0.0.0:{}", port)
+            } else {
+                format!("127.0.0.1:{}", port)
+            }
+        },
+        Err(_) => format!("127.0.0.1:{}", port)
+    }
+} 
 
 /// Retrieve the certificate either form a filepath set on the environment variable
 /// or by looking at the keys folder (local dev)

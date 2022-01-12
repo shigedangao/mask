@@ -1,5 +1,4 @@
 use tonic::transport::{Server, Identity, ServerTlsConfig};
-use tonic_health::ServingStatus;
 use std::sync::Arc;
 
 #[macro_use]
@@ -21,7 +20,7 @@ use icu::icu::IcuHandler;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = utils::setup_services("mask" ,9000)?;
+    utils::setup_services("mask")?;
 
     info!("Connecting to the database");
     let db_pool = db::connect("../config.toml").await?;
@@ -31,19 +30,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (cert, key) = utils::get_certificates()?; 
     let identity = Identity::from_pem(cert, key);
 
-    // creating healthcheck service
-    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
-    health_reporter
-        .set_service_status("Hospital", ServingStatus::Serving)
-        .await;
-
     // setup the server
-    let addr = addr.parse()?;
-    info!("Server is running on port 9000");
-
-    Server::builder()
+    let addr = utils::get_server_addr(9000).parse()?;
+    let server = Server::builder()
         .tls_config(ServerTlsConfig::new().identity(identity))?
-        .add_service(health_service)
         .add_service(CareStatusServer::new(CareService{
             pool: Arc::clone(&db_handle)
         }))
@@ -56,8 +46,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_service(IcuServiceServer::new(IcuHandler {
             pool: Arc::clone(&db_handle)
         }))
-        .serve(addr)
-        .await?;
+        .serve(addr);
+
+    info!("Server is running on port 9000 & Healthcheck server port 5601");
+    tokio::try_join!(server, health::run_health_server())?;
 
     Ok(())
 }
