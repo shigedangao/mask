@@ -18,6 +18,10 @@ pub fn setup_services(name: &str) -> Result<()> {
     Ok(())
 }
 
+/// Generate the server address
+/// 
+/// # Arguments
+/// * `port` - i32
 pub fn get_server_addr(port: i32) -> String {
     match std::env::var("rust_env") {
         Ok(res) => {
