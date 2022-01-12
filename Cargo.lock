@@ -563,6 +563,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "health"
+version = "0.1.0"
+dependencies = [
+ "prost",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tonic-health",
+ "utils",
+]
+
+[[package]]
 name = "heck"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -773,6 +785,7 @@ name = "mask"
 version = "0.1.0"
 dependencies = [
  "db",
+ "health",
  "log",
  "prost",
  "sqlx",
@@ -1008,13 +1021,13 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "db",
+ "health",
  "log",
  "prost",
  "sqlx",
  "tokio",
  "tonic",
  "tonic-build",
- "tonic-health",
  "utils",
 ]
 

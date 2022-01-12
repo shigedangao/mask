@@ -1,0 +1,12 @@
+syntax = "proto3";
+package healthcheck;
+
+service HealthService {
+    rpc isHealthy(HealthParam) returns (HealthResponse);
+}
+
+message HealthParam {}
+
+message HealthResponse {
+    bool isHealthy = 1;
+}

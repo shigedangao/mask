@@ -7,13 +7,13 @@ edition = "2021"
 
 [dependencies]
 tonic = { version = "0.6", features = ["default", "tls"] }
-tonic-health = "0.5.0"
 prost = "0.9"
 log = "0.4"
 tokio = { version = "1.15", features = ["full"] }
 sqlx = { version = "0.5", features = [ "runtime-tokio-native-tls" , "postgres" ] }
 db = { path = "../db" }
 utils = { path = "../utils" }
+health = { path = "../health" }
 chrono = "0.4"
 
 [build-dependencies]
