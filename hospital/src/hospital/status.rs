@@ -28,9 +28,9 @@ impl TryFrom<PgRow> for CareStatusResult {
             icu: value.try_get("rea").unwrap_or_default(),
             back_home: value.try_get("rad").unwrap_or_default(),
             death: value.try_get("dc").unwrap_or_default(),
-            different_care_services: value.try_get("ssr_usld").unwrap_or_default(),
-            conventional_care: value.try_get("hospconv").unwrap_or_default(),
-            other_care_district: value.try_get("autres").unwrap_or_default(),
+            different_care_services: value.try_get("ssr_usld").ok(),
+            conventional_care: value.try_get("hospconv").ok(),
+            other_care_district: value.try_get("autres").ok(),
             day: value.try_get("jour")?
         };
 

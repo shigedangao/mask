@@ -9,10 +9,8 @@ mod positivity;
 mod err;
 
 use pcr::{
-    region::PcrServiceHandle,
-    dep::PcrServiceDepHandle,
-    proto::pcr_service_region_server::PcrServiceRegionServer,
-    proto::pcr_service_department_server::PcrServiceDepartmentServer
+    polymerase::PcrServiceHandle,
+    proto::pcr_service_server::PcrServiceServer
 };
 use positivity::{
     dep::PosServiceHandle,
@@ -34,10 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = utils::get_server_addr(9090).parse()?;
     let server = Server::builder()
         .tls_config(ServerTlsConfig::new().identity(identity))?
-        .add_service(PcrServiceRegionServer::new(PcrServiceHandle {
-            pool: Arc::clone(&db_handle)
-        }))
-        .add_service(PcrServiceDepartmentServer::new(PcrServiceDepHandle {
+        .add_service(PcrServiceServer::new(PcrServiceHandle {
             pool: Arc::clone(&db_handle)
         }))
         .add_service(PositivityRateServer::new(PosServiceHandle {

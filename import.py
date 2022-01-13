@@ -9,7 +9,8 @@ positivity_rate_by_department_url = 'https://www.data.gouv.fr/fr/datasets/r/4180
 data_mix_url = 'https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/files_new/vacsi_non_vacsi_nat.csv'
 unvaxx_url = 'https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/dist/sc_non_vacsi.json'
 vaxx_url = 'https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/dist/sc_vacsi.json'
-hospital_data_per_department = 'https://www.data.gouv.fr/fr/datasets/r/63352e38-d353-4b54-bfd1-f1b3ee1cabd7'
+hospital_data_per_department_url = 'https://www.data.gouv.fr/fr/datasets/r/63352e38-d353-4b54-bfd1-f1b3ee1cabd7'
+pcr_test_country_url = 'https://www.data.gouv.fr/fr/datasets/r/dd0de5d9-b5a5-4503-930a-7b08dc0adc7c'
 
 def import_hospital_cases():
   util.download_file(hospitalization_by_region_url, 'hospitalization_by_region.csv')
@@ -112,7 +113,7 @@ def import_entry_in_icu_for_vaxx():
   os.remove('vaxx.json')
 
 def import_hospital_data_per_department():
-  util.download_file(hospital_data_per_department, 'hospital_dep.csv')
+  util.download_file(hospital_data_per_department_url, 'hospital_dep.csv')
   util.import_csv_to_sql(
     'hospital_dep.csv',
     'hospital_dep',
@@ -131,6 +132,25 @@ def import_hospital_data_per_department():
   )
   os.remove('hospital_dep.csv')
 
+def import_positivity_rate_country():
+  util.download_file(pcr_test_country_url, 'pcr_country.csv')
+  util.import_csv_to_sql(
+    'pcr_country.csv',
+    'pcr_country',
+    {
+      "jour": "string",
+      "P_f": int,
+      "P_h": int,
+      "P": int,
+      "T": int,
+      "T_f": int,
+      "T_h": int,
+      "cl_age90": int,
+      "pop": float
+    }
+  )
+  os.remove('pcr_country.csv')
+
 def main():
   import_hospital_cases()
   import_hospital_new_cases()
@@ -141,7 +161,7 @@ def main():
   import_entry_in_icu_for_non_vaxx()
   import_entry_in_icu_for_vaxx()
   import_hospital_data_per_department()
-
+  import_positivity_rate_country()
 
 if __name__ == "__main__":
   main()
