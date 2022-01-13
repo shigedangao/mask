@@ -101,7 +101,7 @@ pub trait Date {
                     return Some(d.format("%Y-%m-%d").to_string())
                 }
 
-                Some(format!("{}-{}", d.year(), d.month()))
+                Some(d.format("%Y-%m").to_string())
             },
             Err(_) => None
         }

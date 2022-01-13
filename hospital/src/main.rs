@@ -11,7 +11,9 @@ mod icu;
 
 use hospital::proto_newcase::case_service_server::CaseServiceServer;
 use hospital::proto_hospital::care_status_server::CareStatusServer;
+use hospital::proto_hospital::level_service_server::LevelServiceServer;
 use hospital::status::CareService;
+use hospital::level::LevelHandler;
 use hospital::case::CaseServiceHandle;
 use mix::proto_mix::mix_service_server::MixServiceServer;
 use mix::mix::MixHandler;
@@ -44,6 +46,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             pool: Arc::clone(&db_handle)
         }))
         .add_service(IcuServiceServer::new(IcuHandler {
+            pool: Arc::clone(&db_handle)
+        }))
+        .add_service(LevelServiceServer::new(LevelHandler {
             pool: Arc::clone(&db_handle)
         }))
         .serve(addr);

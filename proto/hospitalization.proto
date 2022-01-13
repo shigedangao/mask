@@ -6,6 +6,17 @@ service CareStatus {
     rpc getHospitalStatusByRegion(CareStatusInput) returns (CareStatusOutput);
 }
 
+service LevelService {
+    rpc getHospitalLevelByDepartment(LevelInput) returns (LevelOutput);
+}
+
+message LevelInput {
+    optional int32 day = 1;
+    int32 month = 2;
+    int32 year = 3;
+    string department = 4;
+}
+
 message CareStatusInput {
     optional int32 day = 1;
     int32 month = 2;
@@ -18,7 +29,7 @@ message CareStatusResult {
     int64 age = 2;
     int64 hospitalization = 3;
     int64 icu = 4;
-    int64 healed = 5;
+    int64 back_home = 5;
     int64 death = 6;
     optional double different_care_services = 7;
     optional double conventional_care = 8;
@@ -28,4 +39,26 @@ message CareStatusResult {
 
 message CareStatusOutput {
     repeated CareStatusResult cases = 1;
+}
+
+message LevelResult {
+    string department = 1;
+    enum Sex {
+        BOTH = 0;
+        MALE = 1;
+        FEMALE = 2;
+    }
+    Sex sex = 2;
+    string date = 3;
+    int64 hospitalization = 4;
+    int64 icu = 5;
+    optional double conventional_care = 6;
+    optional double different_care_services = 7;
+    optional double other_care_services = 8;
+    int64 back_home = 9;
+    int64 death = 10;
+}
+
+message LevelOutput {
+    repeated LevelResult data = 1;
 }

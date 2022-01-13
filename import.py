@@ -9,6 +9,7 @@ positivity_rate_by_department_url = 'https://www.data.gouv.fr/fr/datasets/r/4180
 data_mix_url = 'https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/files_new/vacsi_non_vacsi_nat.csv'
 unvaxx_url = 'https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/dist/sc_non_vacsi.json'
 vaxx_url = 'https://raw.githubusercontent.com/etalab/data-covid19-dashboard-widgets/master/dist/sc_vacsi.json'
+hospital_data_per_department = 'https://www.data.gouv.fr/fr/datasets/r/63352e38-d353-4b54-bfd1-f1b3ee1cabd7'
 
 def import_hospital_cases():
   util.download_file(hospitalization_by_region_url, 'hospitalization_by_region.csv')
@@ -28,6 +29,7 @@ def import_hospital_cases():
       "jour": "string"
     }
   )
+  os.remove('hospitalization_by_region.csv')
 
 def import_hospital_new_cases():
   util.download_file(hopsitalization_by_new_case_url, 'hospitalization_new_case.csv')
@@ -36,6 +38,7 @@ def import_hospital_new_cases():
     'cases',
     {"jour": "string", "incid_hosp": int, "incid_rea": int, "incid_dc": int, "incid_rad": int}
   )
+  os.remove('hospitalization_new_case.csv')
 
 def import_pcr_test_per_region():
   util.download_file(pcr_test_by_region_url, 'pcr_test_by_region.csv')
@@ -55,6 +58,7 @@ def import_pcr_test_per_region():
       "pop": float
     }
   )
+  os.remove('pcr_test_by_region.csv')
 
 def import_pcr_test_per_department():
   util.download_file(pcr_test_by_department_url, 'pcr_test_by_department.csv')
@@ -63,6 +67,7 @@ def import_pcr_test_per_department():
     'pcr_test_department',
     {"dep": "string", "jour": "string", "cl_age90": int, "pop": float, "t": int, "p": int}
   )
+  os.remove('pcr_test_by_department.csv')
 
 def import_positivity_rate_per_department_by_day():
   util.download_file(positivity_rate_by_department_url, 'positivity_rate_by_department_per_day.csv')
@@ -71,6 +76,7 @@ def import_positivity_rate_per_department_by_day():
     'positivity_rate_per_dep_by_day',
     {"dep": "string", "jour": "string", "p": int, "tx_std": float}
   )
+  os.remove('positivity_rate_by_department_per_day.csv')
 
 def import_data_mix():
   util.download_file(data_mix_url, 'data_mix.csv')
@@ -93,25 +99,37 @@ def import_data_mix():
       "effectif": int
     }
   )
+  os.remove('data_mix.csv')
 
 def import_entry_in_icu_for_non_vaxx():
   util.download_file(unvaxx_url, 'unvaxx.json')
   util.import_json_to_db('unvaxx.json', ['france', 'values'], 'unvaxx')
+  os.remove('unvaxx.json')
 
 def import_entry_in_icu_for_vaxx():
   util.download_file(vaxx_url, 'vaxx.json')
   util.import_json_to_db('vaxx.json', ['france', 'values'], 'vaxx')
-
-# remove csv after import
-def delete_csv():
-  os.remove('hospitalization_by_region.csv')
-  os.remove('hospitalization_new_case.csv')
-  os.remove('pcr_test_by_region.csv')
-  os.remove('pcr_test_by_department.csv')
-  os.remove('positivity_rate_by_department_per_day.csv')
-  os.remove('data_mix.csv')
-  os.remove('unvaxx.json')
   os.remove('vaxx.json')
+
+def import_hospital_data_per_department():
+  util.download_file(hospital_data_per_department, 'hospital_dep.csv')
+  util.import_csv_to_sql(
+    'hospital_dep.csv',
+    'hospital_dep',
+    {
+      "dep": "string",
+      "sexe": int,
+      "jour": "string",
+      "hosp": int,
+      "rea": int,
+      "rad": int,
+      "dc": int,
+      "ssr_usld": float,
+      "hospconv": float,
+      "autres": float
+    }
+  )
+  os.remove('hospital_dep.csv')
 
 def main():
   import_hospital_cases()
@@ -122,8 +140,8 @@ def main():
   import_data_mix()
   import_entry_in_icu_for_non_vaxx()
   import_entry_in_icu_for_vaxx()
+  import_hospital_data_per_department()
 
-  delete_csv()  
 
 if __name__ == "__main__":
   main()

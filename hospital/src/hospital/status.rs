@@ -26,7 +26,7 @@ impl TryFrom<PgRow> for CareStatusResult {
             age: value.try_get("cl_age90")?,
             hospitalization: value.try_get("hosp").unwrap_or_default(),
             icu: value.try_get("rea").unwrap_or_default(),
-            healed: value.try_get("rad").unwrap_or_default(),
+            back_home: value.try_get("rad").unwrap_or_default(),
             death: value.try_get("dc").unwrap_or_default(),
             different_care_services: value.try_get("ssr_usld").unwrap_or_default(),
             conventional_care: value.try_get("hospconv").unwrap_or_default(),

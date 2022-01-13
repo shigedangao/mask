@@ -17,7 +17,7 @@ message CaseResult {
     int64 new_entry_hospital = 2;
     int64 new_entry_icu = 3;
     int64 death = 4;
-    int64 healed = 5;
+    int64 back_home = 5;
 }
 
 message NewCases {
