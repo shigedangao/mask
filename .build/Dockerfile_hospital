@@ -6,6 +6,7 @@ ENV APP_PATH=hospital
 COPY ./db ./db
 COPY ./utils ./utils
 COPY ./proto ./proto
+COPY ./health ./health
 COPY ./hospital ${APP_PATH}
 # Copy lock
 COPY ./Cargo.lock ${APP_PATH}

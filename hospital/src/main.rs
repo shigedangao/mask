@@ -1,5 +1,4 @@
 use tonic::transport::{Server, Identity, ServerTlsConfig};
-use tonic_health::ServingStatus;
 use std::sync::Arc;
 
 #[macro_use]
@@ -12,16 +11,18 @@ mod icu;
 
 use hospital::proto_newcase::case_service_server::CaseServiceServer;
 use hospital::proto_hospital::care_status_server::CareStatusServer;
+use hospital::proto_hospital::level_service_server::LevelServiceServer;
 use hospital::status::CareService;
+use hospital::level::LevelHandler;
 use hospital::case::CaseServiceHandle;
 use mix::proto_mix::mix_service_server::MixServiceServer;
-use mix::mix::MixHandler;
+use mix::drees::MixHandler;
 use icu::proto_icu::icu_service_server::IcuServiceServer;
-use icu::icu::IcuHandler;
+use icu::level::IcuHandler;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = utils::setup_services("mask" ,9000)?;
+    utils::setup_services("mask")?;
 
     info!("Connecting to the database");
     let db_pool = db::connect("../config.toml").await?;
@@ -31,19 +32,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (cert, key) = utils::get_certificates()?; 
     let identity = Identity::from_pem(cert, key);
 
-    // creating healthcheck service
-    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
-    health_reporter
-        .set_service_status("Hospital", ServingStatus::Serving)
-        .await;
-
     // setup the server
-    let addr = addr.parse()?;
-    info!("Server is running on port 9000");
-
-    Server::builder()
+    let addr = utils::get_server_addr(9000).parse()?;
+    let server = Server::builder()
         .tls_config(ServerTlsConfig::new().identity(identity))?
-        .add_service(health_service)
         .add_service(CareStatusServer::new(CareService{
             pool: Arc::clone(&db_handle)
         }))
@@ -56,8 +48,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_service(IcuServiceServer::new(IcuHandler {
             pool: Arc::clone(&db_handle)
         }))
-        .serve(addr)
-        .await?;
+        .add_service(LevelServiceServer::new(LevelHandler {
+            pool: Arc::clone(&db_handle)
+        }))
+        .serve(addr);
+
+    info!("Server is running on port 9000 & Healthcheck server port 5601");
+    tokio::try_join!(server, health::run_health_server())?;
 
     Ok(())
 }

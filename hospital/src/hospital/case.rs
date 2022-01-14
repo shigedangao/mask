@@ -24,7 +24,7 @@ impl TryFrom<PgRow> for CaseResult {
             new_entry_hospital: value.try_get("incid_hosp")?,
             new_entry_icu: value.try_get("incid_rea")?,
             death: value.try_get("incid_dc")?,
-            healed: value.try_get("incid_rad")?
+            back_home: value.try_get("incid_rad")?
         };
 
         Ok(res)

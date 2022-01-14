@@ -7,6 +7,7 @@ RUN USER=root cargo new --bin pcr
 COPY ./db ./db
 COPY ./utils ./utils
 COPY ./proto ./proto
+COPY ./health ./health
 COPY ./pcr ${APP_PATH}
 # copy lock
 COPY ./Cargo.lock ${APP_PATH}

@@ -1,5 +1,6 @@
 pub mod case;
 pub mod status;
+pub mod level;
 
 // import generated struct by tonic
 pub mod proto_hospital {

@@ -1,26 +1,18 @@
 syntax = "proto3";
 package pcr;
 
-service PcrServiceDepartment {
-    rpc getPcrTestMadeByDepartment(PcrInputDepartment) returns (PcrOutput);
+service PcrService {
+    rpc getPcrTestMadeByDepartment(PcrInput) returns (PcrOutput);
+    rpc getPcrTestMadeByRegion(PcrInput) returns (PcrOutput);
+    rpc getPcrTestMadeCountry(PcrInput) returns (PcrOutput);
 }
 
-service PcrServiceRegion {
-    rpc getPcrTestMadeByRegion(PcrInputRegion) returns (PcrOutput);
-}
-
-message PcrInputDepartment {
+message PcrInput {
     optional int32 day = 1;
     int32 month = 2;
     int32 year = 3;
-    string department = 4;
-}
-
-message PcrInputRegion {
-    optional int32 day = 1;
-    int32 month = 2;
-    int32 year = 3;
-    int32 region = 4;
+    optional string department = 4;
+    optional int32 region = 5;
 }
 
 message PcrResult {
