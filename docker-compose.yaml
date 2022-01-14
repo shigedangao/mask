@@ -19,5 +19,38 @@ services:
     ports:
       - 8080:8080
 
+  python:
+    build: ./build/Dockerfile_py
+    depends_on:
+      - db
+    environment:
+      db_username: fox
+      db_password: flyingfox
+      db_host: db
+      db_port: 5432
+      db_name: covid
+
+  hospital:
+    build: ./build/Dockerfile_hospital
+    depends_on:
+      - db
+    environment:
+      db_username: fox
+      db_password: flyingfox
+      db_host: db
+      db_port: 5432
+      db_name: covid
+
+  pcr:
+    build: ./build/Dockerfile_pcr
+    depends_on:
+      - db
+    environment:
+      db_username: fox
+      db_password: flyingfox
+      db_host: db
+      db_port: 5432
+      db_name: covid
+
 volumes:
   dbdata:

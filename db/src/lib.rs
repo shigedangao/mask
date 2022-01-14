@@ -3,6 +3,9 @@ use sqlx::{postgres::{PgPoolOptions}, Postgres, Pool};
 use toml::Value;
 use std::fs;
 
+#[macro_use]
+extern crate log;
+
 pub mod err;
 pub mod query;
 
@@ -17,7 +20,7 @@ const ENV_DB_PORT: &str = "db_port";
 const ENV_DB_NAME: &str = "db_name";
 
 /// Build the production database URI based os environment variables
-fn build_production_database_uri() -> Result<String, DBError> {
+fn build_database_uri_from_env() -> Result<String, DBError> {
     let username = std::env::var(ENV_DB_USERNAME)?;
     let password = std::env::var(ENV_DB_PASSWORD)?;
     let host = std::env::var(ENV_DB_HOST)?;
@@ -32,6 +35,8 @@ fn build_production_database_uri() -> Result<String, DBError> {
         port,
         db_name
     );
+
+    info!(target: "util", "Load environment variable from env");
 
     Ok(connection_uri)
 }
@@ -80,6 +85,8 @@ fn build_dev_database_uri(filepath: &str) -> Result<String, DBError> {
         db_name
     );
 
+    info!(target: "util", "Load environment variable from config.toml");
+
     Ok(connection_uri)
 }
 
@@ -90,12 +97,14 @@ fn build_dev_database_uri(filepath: &str) -> Result<String, DBError> {
 fn get_connection_uri(filepath: &str) -> Result<String, DBError> {
     if let Ok(mode) = std::env::var("rust_env") {
         if mode == "prod" {
-            return build_production_database_uri();
+            return build_database_uri_from_env();
         }
     }
 
     // return dev otherwise
+    // if error load production var
     build_dev_database_uri(filepath)
+        .or(build_database_uri_from_env())
 }
 
 /// Create a connection handler with the targeted database

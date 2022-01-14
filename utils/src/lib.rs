@@ -9,7 +9,7 @@ use chrono::{NaiveDate, Datelike, Duration};
 /// * `port` - i32
 pub fn setup_services(name: &str) -> Result<()> {
     // set environment variable for log debugging
-    std::env::set_var("RUST_LOG", format!("{}=info", name));
+    std::env::set_var("RUST_LOG", format!("{}=info,util=info", name));
     std::env::set_var("RUST_BACKTRACE", "1");
 
     color_eyre::install()?;
