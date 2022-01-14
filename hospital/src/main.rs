@@ -16,9 +16,9 @@ use hospital::status::CareService;
 use hospital::level::LevelHandler;
 use hospital::case::CaseServiceHandle;
 use mix::proto_mix::mix_service_server::MixServiceServer;
-use mix::mix::MixHandler;
+use mix::drees::MixHandler;
 use icu::proto_icu::icu_service_server::IcuServiceServer;
-use icu::icu::IcuHandler;
+use icu::level::IcuHandler;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
