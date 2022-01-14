@@ -1,0 +1,14 @@
+######## Builder ########
+FROM rust:1 as builder
+ENV APP_PATH=work
+
+# Install rustfmt
+RUN rustup component add rustfmt
+
+WORKDIR ${APP_PATH}
+
+RUN mkdir hospital
+
+WORKDIR ${APP_PATH}/hospital
+
+CMD ["cargo", "run"]
