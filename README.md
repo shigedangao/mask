@@ -28,7 +28,7 @@ Data comes from the website [data.gouv.fr](https://data.gouv.fr/). I also used d
 
 ### Docker
 
-A docker-compose.yaml can be founded. You can use tool such as docker / podman to bootstrap the project.
+For docker user. You only need to generate TLS key by using the `generate.sh` script. See the [section](#tls-certificate). Once done you can use podman or docker-compose to bootstrap the project ```docker-compose up -d```
 
 ### Manual installation
 
