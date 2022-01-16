@@ -24,7 +24,7 @@ message MixResult {
     double icu_entry_pcr_positive = 10;
     double death = 11;
     double pcr_positive_death = 12;
-    int64 resident_population = 13;
+    double resident_population = 13;
 }
 
 message MixOutput {

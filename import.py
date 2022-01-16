@@ -97,7 +97,7 @@ def import_data_mix():
       "SC_PCR+": float,
       "DC": float,
       "DC_PCR+": float,
-      "effectif": int
+      "effectif": float
     }
   )
   os.remove('data_mix.csv')

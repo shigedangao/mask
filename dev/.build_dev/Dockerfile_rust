@@ -1,0 +1,22 @@
+######## Builder ########
+FROM rust:1 as builder
+ENV APP_PATH=work
+
+# Install rustfmt
+RUN rustup component add rustfmt
+RUN cargo install cargo-watch
+
+WORKDIR ${APP_PATH}
+
+COPY Cargo.toml ./Cargo.toml
+COPY Cargo.lock ./Cargo.lock
+COPY hospital ./hospital
+COPY db ./db
+COPY health ./health
+COPY utils ./utils
+COPY pcr ./pcr
+COPY proto ./proto
+
+RUN cargo build
+
+CMD ["cargo", "run"]
