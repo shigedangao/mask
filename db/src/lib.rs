@@ -36,7 +36,7 @@ fn build_database_uri_from_env() -> Result<String, DBError> {
         db_name
     );
 
-    info!(target: "util", "Load environment variable from env");
+    info!(target: "util", "Load environment variables from env");
 
     Ok(connection_uri)
 }
@@ -85,7 +85,7 @@ fn build_dev_database_uri(filepath: &str) -> Result<String, DBError> {
         db_name
     );
 
-    info!(target: "util", "Load environment variable from config.toml");
+    info!(target: "util", "Load environment variables from config.toml");
 
     Ok(connection_uri)
 }

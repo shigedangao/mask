@@ -36,7 +36,7 @@ services:
     build:
       context: .
       dockerfile: ./dev/.build_dev/Dockerfile_rust
-    command: /bin/sh -c "cd hospital && cargo run"
+    command: /bin/sh -c "cd hospital && cargo watch -x run"
     depends_on:
       - db
     volumes:
@@ -65,7 +65,7 @@ services:
     build:
       context: .
       dockerfile: ./dev/.build_dev/Dockerfile_rust
-    command: /bin/sh -c "cd pcr && cargo run"
+    command: /bin/sh -c "cd pcr && cargo watch -x run"
     depends_on:
       - db
     volumes:
