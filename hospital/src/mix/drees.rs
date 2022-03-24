@@ -5,10 +5,14 @@ use sqlx::{
     Row
 };
 use tonic::{Request, Response, Status};
-use utils::Date;
-use crate::err::MaskErr;
+use utils::{
+    Date,
+    err::MaskErr
+};
+use crate::common::proto_common::CommonInput;
+use super::common::CommonInput as DCommonInput;
 use super::proto_mix::mix_service_server::MixService;
-use super::proto_mix::{MixInput, MixOutput, MixResult};
+use super::proto_mix::{MixOutput, MixResult};
 
 pub struct MixHandler {
     pub pool: Arc<PGPool>
@@ -38,20 +42,6 @@ impl TryFrom<PgRow> for MixResult {
     }
 }
 
-impl Date for MixInput {
-    fn get_year(&self) -> i32 {
-        self.year
-    }
-
-    fn get_month(&self) -> i32 {
-        self.month
-    }
-    
-    fn get_day(&self) -> Option<i32> {
-        self.day
-    }
-}
-
 #[tonic::async_trait]
 impl MixService for MixHandler {
     /// Return the global covid mix data by date. It's a mix of 
@@ -62,13 +52,10 @@ impl MixService for MixHandler {
     /// * `request` - Request<MixInput>
     async fn get_global_covid_data_by_date(
         &self,
-        request: Request<MixInput>
+        request: Request<DCommonInput>
     ) -> Result<Response<MixOutput>, Status> {
-        let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(date) => date,
-            None => return Err(MaskErr::InvalidDate.into())
-        };
+        let input: CommonInput = request.into_inner().into();
+        let date = input.build_date_sql_like()?;
 
         match query::get_all_by_date_only::<MixResult>(
             &self.pool,
@@ -94,7 +81,7 @@ mod tests {
         let db_handler = Arc::new(pool);
         let mix_service = MixHandler { pool: Arc::clone(&db_handler) };
 
-        let input = MixInput {
+        let input = DCommonInput {
             day: Some(10),
             month: 10,
             year: 2021

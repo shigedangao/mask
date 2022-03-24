@@ -1,15 +1,12 @@
 syntax = "proto3";
 package icu;
 
-service IcuService {
-    rpc getFranceIcuLevelForNonVaxx(IcuInput) returns (IcuOutput);
-    rpc getFranceIcuLevelForVaxx(IcuInput) returns (IcuOutput);
-}
+// Import
+import "common.proto";
 
-message IcuInput {
-    optional int32 day = 1;
-    int32 month = 2;
-    int32 year = 3;
+service IcuService {
+    rpc getFranceIcuLevelForNonVaxx(common.CommonInput) returns (IcuOutput);
+    rpc getFranceIcuLevelForVaxx(common.CommonInput) returns (IcuOutput);
 }
 
 message IcuResult {

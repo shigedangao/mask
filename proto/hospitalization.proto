@@ -1,6 +1,9 @@
 syntax = "proto3";
 package hospital;
 
+// import
+import "common.proto";
+
 // Get the status by region and by day
 service CareStatus {
     rpc getHospitalStatusByRegion(CareStatusInput) returns (CareStatusOutput);
@@ -11,17 +14,13 @@ service LevelService {
 }
 
 message LevelInput {
-    optional int32 day = 1;
-    int32 month = 2;
-    int32 year = 3;
-    string department = 4;
+    common.CommonInput date = 1;
+    string department = 2;
 }
 
 message CareStatusInput {
-    optional int32 day = 1;
-    int32 month = 2;
-    int32 year = 3;
-    int32 region = 4;
+    common.CommonInput date = 1;
+    int32 region = 2;
 }
 
 message CareStatusResult {

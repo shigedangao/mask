@@ -1,6 +1,9 @@
 syntax = "proto3";
 package pcr;
 
+// Import
+import "common.proto";
+
 service PcrService {
     rpc getPcrTestMadeByDepartment(PcrInput) returns (PcrOutput);
     rpc getPcrTestMadeByRegion(PcrInput) returns (PcrOutput);
@@ -8,11 +11,9 @@ service PcrService {
 }
 
 message PcrInput {
-    optional int32 day = 1;
-    int32 month = 2;
-    int32 year = 3;
-    optional string department = 4;
-    optional int32 region = 5;
+    common.CommonInput date = 1;
+    optional string department = 2;
+    optional int32 region = 3;
 }
 
 message PcrResult {

@@ -5,10 +5,14 @@ use sqlx::{
     Row
 };
 use tonic::{Request, Response, Status};
-use utils::Date;
-use crate::err::MaskErr;
+use utils::{
+    Date,
+    err::MaskErr
+};
+use crate::common::proto_common::CommonInput;
+use super::common::CommonInput as ICommonInput;
 use super::proto_icu::icu_service_server::IcuService;
-use super::proto_icu::{IcuInput, IcuOutput, IcuResult};
+use super::proto_icu::{IcuOutput, IcuResult};
 
 pub struct IcuHandler {
     pub pool: Arc<PGPool>
@@ -30,20 +34,6 @@ impl TryFrom<PgRow> for IcuResult {
     }
 }
 
-impl Date for IcuInput {
-    fn get_year(&self) -> i32 {
-        self.year
-    }
-
-    fn get_month(&self) -> i32 {
-        self.month
-    }
-
-    fn get_day(&self) -> Option<i32> {
-        self.day
-    }
-}
-
 #[tonic::async_trait]
 impl IcuService for IcuHandler {
     /// Get the ICU level in the whole country for unvaxx people. A dataset for region and department exist
@@ -54,13 +44,10 @@ impl IcuService for IcuHandler {
     /// * `request` - Request<IcuInput>
     async fn get_france_icu_level_for_non_vaxx(
         &self,
-        request: Request<IcuInput>
+        request: Request<ICommonInput>
     ) -> Result<Response<IcuOutput>, Status> {
-        let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(date) => date,
-            None => return Err(MaskErr::InvalidDate.into())
-        };
+        let input: CommonInput = request.into_inner().into();
+        let date = input.build_date_sql_like()?;
 
         match query::get_all_by_date_only(
             &self.pool,
@@ -82,13 +69,10 @@ impl IcuService for IcuHandler {
     /// * `request` - Request<IcuInput>
     async fn get_france_icu_level_for_vaxx(
         &self,
-        request: Request<IcuInput>
+        request: Request<ICommonInput>
     ) -> Result<Response<IcuOutput>, Status> {
-        let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(date) => date,
-            None => return Err(MaskErr::InvalidDate.into())
-        };
+        let input: CommonInput = request.into_inner().into();
+        let date = input.build_date_sql_like()?;
 
         match query::get_all_by_date_only(
             &self.pool,
@@ -116,7 +100,7 @@ mod tests {
             pool: Arc::clone(&pool_arc)
         };
 
-        let input = IcuInput {
+        let input = ICommonInput {
             day: Some(18),
             month: 12,
             year: 2021
@@ -136,7 +120,7 @@ mod tests {
             pool: Arc::clone(&pool_arc)
         };
 
-        let input = IcuInput {
+        let input = ICommonInput {
             day: Some(18),
             month: 12,
             year: 2021

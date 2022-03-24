@@ -1,6 +1,7 @@
-use std::fs;
 use color_eyre::Result;
 use chrono::{NaiveDate, Datelike, Duration};
+
+pub mod err;
 
 /// Setup the library and the address to use based on the environment variable
 /// for each gRPC microservices
@@ -33,30 +34,6 @@ pub fn get_server_addr(port: i32) -> String {
         },
         Err(_) => format!("127.0.0.1:{}", port)
     }
-} 
-
-/// Retrieve the certificate either form a filepath set on the environment variable
-/// or by looking at the keys folder (local dev)
-pub fn get_certificates() -> Result<(Vec<u8>, Vec<u8>), Box<dyn std::error::Error>> {
-    let env = match std::env::var("rust_env") {
-        Ok(res) => res,
-        Err(_) => "dev".to_owned()
-    };
-
-    if env == "prod" {
-        let filepath_cert = std::env::var("server_cert")?;
-        let filepath_key = std::env::var("server_key")?;
-
-        let server_cert = fs::read(filepath_cert)?;
-        let server_key = fs::read(filepath_key)?;
-
-        return Ok((server_cert, server_key));
-    }
-
-    let server_cert = fs::read("../keys/server-cert.pem")?;
-    let server_key = fs::read("../keys/server-key.key")?;
-
-    Ok((server_cert, server_key))
 }
 
 pub trait Date {
@@ -88,7 +65,7 @@ pub trait Date {
     /// 
     /// # Arguments
     /// * `&self` - &Date
-    fn build_date(&self) -> Option<String> {
+    fn build_date(&self) -> Result<String, err::MaskErr> {
         let (formatted_date, is_full_day) = match self.get_day() {
             Some(day) => (format!("{}-{}-{}", self.get_year(), self.get_month(), day), true),
             // add an empty 1 to make the date hopefully valid
@@ -98,12 +75,12 @@ pub trait Date {
         match NaiveDate::parse_from_str(&formatted_date, "%Y-%m-%d") {
             Ok(d) => {
                 if is_full_day {
-                    return Some(d.format("%Y-%m-%d").to_string())
+                    return Ok(d.format("%Y-%m-%d").to_string())
                 }
 
-                Some(d.format("%Y-%m").to_string())
+                Ok(d.format("%Y-%m").to_string())
             },
-            Err(_) => None
+            Err(err) => Err(err::MaskErr::IO(err.to_string()))
         }
     }
 
@@ -111,10 +88,10 @@ pub trait Date {
     ///
     /// # Arguments
     /// * `&self` - Self
-    fn build_date_sql_like(&self) -> Option<String> {
+    fn build_date_sql_like(&self) -> Result<String, err::MaskErr> {
         let date = self.build_date()?;
 
-        Some(format!("{}%", date))
+        Ok(format!("{}%", date))
     }
 
     /// Return a list of the last 7 day based on a given day

@@ -5,8 +5,11 @@ use sqlx::{
     Row
 };
 use tonic::{Request, Response, Status};
-use utils::Date;
-use crate::err::PcrErr;
+use utils::{
+    Date,
+    err::MaskErr
+};
+use crate::common::proto_common::CommonInput;
 use super::proto::{
     pcr_service_server::PcrService,
     PcrInput, PcrOutput, PcrResult
@@ -40,20 +43,6 @@ impl TryFrom<PgRow> for PcrResult {
     }
 }
 
-impl Date for PcrInput {
-    fn get_year(&self) -> i32 {
-        self.year
-    }
-
-    fn get_month(&self) -> i32 {
-        self.month
-    }
-
-    fn get_day(&self) -> Option<i32> {
-        self.day
-    }
-}
-
 #[tonic::async_trait]
 impl PcrService for PcrServiceHandle {
     /// Get the list of pcr test made per department
@@ -66,14 +55,16 @@ impl PcrService for PcrServiceHandle {
         request: Request<PcrInput>
     ) -> Result<Response<PcrOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(d) => d,
-            None => return Err(PcrErr::InvalidDate.into())
-        };
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+
+        let date: CommonInput = input.date.unwrap().into();
+        let date = date.build_date_sql_like()?;
 
         let department = match input.department {
             Some(dep) => dep,
-            None => return Err(PcrErr::MissingParam("department".to_owned()).into())
+            None => return Err(MaskErr::MissingParam("department".to_owned()).into())
         };
 
         match query::get_all_by_date_and_gen_field::<PcrResult, &str>(
@@ -85,7 +76,7 @@ impl PcrService for PcrServiceHandle {
             Ok(pcr) => Ok(Response::new(PcrOutput { pcr })),
             Err(err) => {
                 error!("fetch pcr by department {:?}", err);
-                return Err(PcrErr::QueryError("pcr by department".into()).into());
+                return Err(MaskErr::QueryError("pcr by department".into()).into());
             }
         }
     }
@@ -101,14 +92,16 @@ impl PcrService for PcrServiceHandle {
         request: Request<PcrInput>
     ) -> Result<Response<PcrOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(res) => res,
-            None => return Err(PcrErr::InvalidDate.into())
-        };
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+
+        let date: CommonInput = input.date.unwrap().into();
+        let date = date.build_date_sql_like()?;
 
         let region = match input.region {
             Some(reg) => reg,
-            None => return Err(PcrErr::MissingParam("region".to_owned()).into())
+            None => return Err(MaskErr::MissingParam("region".to_owned()).into())
         };
 
         match query::get_all_by_date_and_gen_field::<PcrResult, i32>(
@@ -120,7 +113,7 @@ impl PcrService for PcrServiceHandle {
             Ok(pcr) => Ok(Response::new(PcrOutput { pcr })),
             Err(err) => {
                 error!("fetch pcr test by region {:?}", err);
-                return Err(PcrErr::QueryError("pcr by region".into()).into());
+                return Err(MaskErr::QueryError("pcr by region".into()).into());
             }
         }
     }
@@ -135,10 +128,12 @@ impl PcrService for PcrServiceHandle {
         request: Request<PcrInput>
     ) -> Result<Response<PcrOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(res) => res,
-            None => return Err(PcrErr::InvalidDate.into())
-        };
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+
+        let date: CommonInput = input.date.unwrap().into();
+        let date = date.build_date_sql_like()?;
 
         match query::get_all_by_date_only::<PcrResult>(
             &self.pool,
@@ -148,7 +143,7 @@ impl PcrService for PcrServiceHandle {
             Ok(pcr) => Ok(Response::new(PcrOutput { pcr })),
             Err(err) => {
                 error!("fetch pcr test in the whole country {:?}", err);
-                return Err(PcrErr::QueryError("pcr pcr test in the whole country".into()).into());
+                return Err(MaskErr::QueryError("pcr pcr test in the whole country".into()).into());
             }
         }
     }
@@ -157,6 +152,7 @@ impl PcrService for PcrServiceHandle {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::common::CommonInput as PCommandInput;
 
     #[tokio::test]
     async fn expect_grpc_dep_to_return_ok() {
@@ -167,9 +163,11 @@ mod tests {
         };
 
         let input = PcrInput {
-            day: Some(1),
-            month: 12,
-            year: 2021,
+            date: Some(PCommandInput {
+                day: Some(1),
+                month: 12,
+                year: 2021
+            }),
             department: Some("75".to_string()),
             region: None
         };
@@ -189,9 +187,11 @@ mod tests {
         };
 
         let input = PcrInput {
-            day: Some(12),
-            month: 12,
-            year: 2021,
+            date: Some(PCommandInput {
+                day: Some(12),
+                month: 12,
+                year: 2021
+            }),
             region: Some(93),
             department: None
         };
@@ -211,9 +211,11 @@ mod tests {
         };
 
         let input = PcrInput {
-            day: Some(12),
-            month: 12,
-            year: 2021,
+            date: Some(PCommandInput {
+                day: Some(12),
+                month: 12,
+                year: 2021
+            }),
             region: None,
             department: None
         };
@@ -233,9 +235,11 @@ mod tests {
         };
 
         let input = PcrInput {
-            day: Some(2222222),
-            month: 12,
-            year: 2021,
+            date: Some(PCommandInput {
+                day: Some(2222222),
+                month: 12,
+                year: 2021
+            }),
             department: Some("75".to_string()),
             region: None
         };
