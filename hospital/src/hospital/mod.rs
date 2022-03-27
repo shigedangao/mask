@@ -10,3 +10,7 @@ pub mod proto_hospital {
 pub mod proto_newcase {
     tonic::include_proto!("newcase");
 }
+
+pub mod common {
+    tonic::include_proto!("common");
+}

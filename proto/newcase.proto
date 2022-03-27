@@ -1,15 +1,16 @@
 syntax = "proto3";
 package newcase;
 
+// Import
+import "common.proto";
+
 service CaseService {
     rpc getNewCaseByDepartment(CaseInput) returns (NewCases);
 }
 
 message CaseInput {
     string department = 1;
-    optional int32 day = 2;
-    int32 month = 3;
-    int32 year = 4;
+    common.CommonInput date = 2;
 }
 
 message CaseResult {

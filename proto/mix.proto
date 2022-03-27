@@ -1,14 +1,15 @@
 syntax = "proto3";
 package mix;
 
+// Import
+import "common.proto";
+
 service MixService {
     rpc getGlobalCovidDataByDate(MixInput) returns (MixOutput);
 }
 
 message MixInput {
-    optional int32 day = 1;
-    int32 month = 2;
-    int32 year = 3;
+    common.CommonInput date = 1;
 }
 
 message MixResult {

@@ -5,10 +5,13 @@ use sqlx::{
     Row
 };
 use tonic::{Request, Response, Status};
-use utils::Date;
-use crate::err::MaskErr;
+use utils::{
+    Date,
+    err::MaskErr
+};
+use crate::common::proto_common::CommonInput;
 use super::proto_icu::icu_service_server::IcuService;
-use super::proto_icu::{IcuInput, IcuOutput, IcuResult};
+use super::proto_icu::{IcuOutput, IcuResult, IcuInput};
 
 pub struct IcuHandler {
     pub pool: Arc<PGPool>
@@ -30,20 +33,6 @@ impl TryFrom<PgRow> for IcuResult {
     }
 }
 
-impl Date for IcuInput {
-    fn get_year(&self) -> i32 {
-        self.year
-    }
-
-    fn get_month(&self) -> i32 {
-        self.month
-    }
-
-    fn get_day(&self) -> Option<i32> {
-        self.day
-    }
-}
-
 #[tonic::async_trait]
 impl IcuService for IcuHandler {
     /// Get the ICU level in the whole country for unvaxx people. A dataset for region and department exist
@@ -57,10 +46,12 @@ impl IcuService for IcuHandler {
         request: Request<IcuInput>
     ) -> Result<Response<IcuOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(date) => date,
-            None => return Err(MaskErr::InvalidDate.into())
-        };
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+    
+        let date: CommonInput = input.date.unwrap().into();
+        let date = date.build_date_sql_like()?;
 
         match query::get_all_by_date_only(
             &self.pool,
@@ -85,10 +76,12 @@ impl IcuService for IcuHandler {
         request: Request<IcuInput>
     ) -> Result<Response<IcuOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(date) => date,
-            None => return Err(MaskErr::InvalidDate.into())
-        };
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+    
+        let date: CommonInput = input.date.unwrap().into();
+        let date = date.build_date_sql_like()?;
 
         match query::get_all_by_date_only(
             &self.pool,
@@ -107,6 +100,7 @@ impl IcuService for IcuHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::common::CommonInput as ICommonInput;
 
     #[tokio::test]
     async fn expect_grpc_to_return_response_for_unvaxx() {
@@ -117,9 +111,11 @@ mod tests {
         };
 
         let input = IcuInput {
-            day: Some(18),
-            month: 12,
-            year: 2021
+            date: Some(ICommonInput {
+                day: Some(18),
+                month: 12,
+                year: 2021
+            })
         };
 
         let request = Request::new(input);
@@ -137,9 +133,11 @@ mod tests {
         };
 
         let input = IcuInput {
-            day: Some(18),
-            month: 12,
-            year: 2021
+            date: Some(ICommonInput {
+                day: Some(18),
+                month: 12,
+                year: 2021
+            })
         };
 
         let request = Request::new(input);

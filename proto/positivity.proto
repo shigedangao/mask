@@ -1,16 +1,17 @@
 syntax = "proto3";
 package pos;
 
+// Import
+import "common.proto";
+
 service PositivityRate {
     rpc getPositivityByDepartmentPerDay(PositivityInput) returns (PositivityCollection);
     rpc getPositivityByDepartmentPerWeek(PositivityInput) returns (PositivityWeekCollection);
 }
 
 message PositivityInput {
-    optional int32 day = 1;
-    int32 month = 2;
-    int32 year = 3;
-    string department = 4;
+    common.CommonInput date = 1;
+    string department = 2;
 }
 
 message PositivityDayResult {

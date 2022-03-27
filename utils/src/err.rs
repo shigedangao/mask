@@ -4,15 +4,19 @@ use tonic::Status;
 pub enum MaskErr {
     QueryError(String),
     InvalidDate,
+    MissingDate,
+    MissingParam(String),
     IO(String),
 }
 
 impl std::fmt::Display for MaskErr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            MaskErr::QueryError(reason) => write!(f, "An error happened while fetching data, {:?}", reason),
+            MaskErr::QueryError(reason) => write!(f, "An error happened while fetching data, {reason:?}"),
             MaskErr::InvalidDate => write!(f, "The date is invalid"),
-            MaskErr::IO(msg) => write!(f, "Unable to open file for reasons: {}", msg),
+            MaskErr::MissingDate => write!(f, "The date is missing"),
+            MaskErr::MissingParam(key) => write!(f, "A param of name {key} is missing"),
+            MaskErr::IO(msg) => write!(f, "Unable to open file for reasons: {msg}",),
         }
     }
 }
@@ -47,6 +51,8 @@ impl From<MaskErr> for Status {
     fn from(err: MaskErr) -> Self {
         match err {
             MaskErr::QueryError(msg) | MaskErr::IO(msg) => Status::internal(msg),
+            MaskErr::MissingDate => Status::invalid_argument("The date is missing"),
+            MaskErr::MissingParam(msg) => Status::failed_precondition(msg),
             MaskErr::InvalidDate => Status::invalid_argument("The date is invalid"),
         }
     }
