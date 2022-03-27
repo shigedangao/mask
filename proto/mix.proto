@@ -5,7 +5,11 @@ package mix;
 import "common.proto";
 
 service MixService {
-    rpc getGlobalCovidDataByDate(common.CommonInput) returns (MixOutput);
+    rpc getGlobalCovidDataByDate(MixInput) returns (MixOutput);
+}
+
+message MixInput {
+    common.CommonInput date = 1;
 }
 
 message MixResult {

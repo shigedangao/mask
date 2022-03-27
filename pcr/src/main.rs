@@ -36,7 +36,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .serve(addr);
 
     info!("Starting the server port 9090 & Healthcheck server port 5601");
-    tokio::try_join!(server, health::run_health_server())?;
+    //tokio::try_join!(server, health::run_health_server())?;
+    tokio::try_join!(server)?;
 
     Ok(())
 }

@@ -5,8 +5,12 @@ package icu;
 import "common.proto";
 
 service IcuService {
-    rpc getFranceIcuLevelForNonVaxx(common.CommonInput) returns (IcuOutput);
-    rpc getFranceIcuLevelForVaxx(common.CommonInput) returns (IcuOutput);
+    rpc getFranceIcuLevelForNonVaxx(IcuInput) returns (IcuOutput);
+    rpc getFranceIcuLevelForVaxx(IcuInput) returns (IcuOutput);
+}
+
+message IcuInput {
+    common.CommonInput date = 1; 
 }
 
 message IcuResult {
