@@ -1,5 +1,7 @@
 # Mask 😷
 
+[![tests](https://github.com/shigedangao/mask/actions/workflows/test.yaml/badge.svg)](https://github.com/shigedangao/mask/actions/workflows/test.yaml)
+
 This project is a playground to learn gRPC. This repo contain 2 services which is used by the [graphie repo](https://github.com/shigedangao/graphie) to expose French's covid data.
 
 # Data uses
@@ -28,7 +30,7 @@ Data comes from the website [data.gouv.fr](https://data.gouv.fr/). I also used d
 
 ### Docker
 
-For docker user. You only need to generate TLS key by using the `generate.sh` script. See the [section](#tls-certificate). Once done you can use podman or docker-compose to bootstrap the project ```docker-compose up -d```
+For docker user use the command ```docker-compose up -d```
 
 ### Manual installation
 
@@ -55,11 +57,7 @@ These project run in a Kubernetes cluster. As a result we need to configure a he
 
 ## Test gRPC server with bloom rpc
 
-To test the gRPC server. It's recommended to use [bloom rpc](https://github.com/bloomrpc/bloomrpc). Because we're running in secure mode. You may refer to the configuration below for the TLS configuration of bloomrpc
-
-<p align="center">
-  <img src="bloom.png" />
-</p>
+To test the gRPC server. It's recommended to use [bloom rpc](https://github.com/bloomrpc/bloomrpc).
 
 ## Unit test
 

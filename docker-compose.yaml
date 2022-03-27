@@ -31,61 +31,57 @@ services:
       db_host: db
       db_port: 5432
       db_name: covid
-#
-  #hospital:
-  #  build:
-  #    context: .
-  #    dockerfile: ./dev/.build_dev/Dockerfile_rust
-  #  command: /bin/sh -c "cd hospital && cargo watch -x run"
-  #  depends_on:
-  #    - db
-  #  volumes:
-  #    - "./Cargo.toml:/work/Cargo.toml"
-  #    - "./Cargo.lock:/work/Cargo.lock"
-  #    - "./db:/work/db"
-  #    - "./health:/work/health"
-  #    - "./utils:/work/utils"
-  #    - "./hospital:/work/hospital"
-  #    - "./pcr:/work/pcr"
-  #    - "./keys:/work/keys"
-  #    - "./proto:/work/proto"
-  #  environment:
-  #    rust_env: prod
-  #    server_cert: ../keys/server-cert.pem
-  #    server_key: ../keys/server-key.key
-  #    db_username: fox
-  #    db_password: flyingfox
-  #    db_host: db
-  #    db_port: 5432
-  #    db_name: covid
-  #  ports:
-  #    - 9000:9000
 
-  #pcr:
-  #  build:
-  #    context: .
-  #    dockerfile: ./dev/.build_dev/Dockerfile_rust
-  #  command: /bin/sh -c "cd pcr && cargo watch -x run"
-  #  depends_on:
-  #    - db
-  #  volumes:
-  #    - "./Cargo.toml:/work/Cargo.toml"
-  #    - "./Cargo.lock:/work/Cargo.lock"
-  #    - "./db:/work/db"
-  #    - "./health:/work/health"
-  #    - "./utils:/work/utils"
-  #    - "./hospital:/work/hospital"
-  #    - "./pcr:/work/pcr"
-  #    - "./keys:/work/keys"
-  #    - "./proto:/work/proto"
-  #  environment:
-  #    rust_env: prod
-  #    server_cert: ../keys/server-cert.pem
-  #    server_key: ../keys/server-key.key
-  #    db_username: fox
-  #    db_password: flyingfox
-  #    db_host: db
-  #    db_port: 5432
-  #    db_name: covid
-  #  ports:
-  #    - 9090:9090
+  hospital:
+    build:
+      context: .
+      dockerfile: ./dev/.build_dev/Dockerfile_rust
+    command: /bin/sh -c "cd hospital && cargo watch -x run"
+    depends_on:
+      - db
+    volumes:
+      - "./Cargo.toml:/work/Cargo.toml"
+      - "./Cargo.lock:/work/Cargo.lock"
+      - "./db:/work/db"
+      - "./health:/work/health"
+      - "./utils:/work/utils"
+      - "./hospital:/work/hospital"
+      - "./pcr:/work/pcr"
+      - "./keys:/work/keys"
+      - "./proto:/work/proto"
+    environment:
+      rust_env: prod
+      db_username: fox
+      db_password: flyingfox
+      db_host: db
+      db_port: 5432
+      db_name: covid
+    ports:
+      - 9000:9000
+
+  pcr:
+    build:
+      context: .
+      dockerfile: ./dev/.build_dev/Dockerfile_rust
+    command: /bin/sh -c "cd pcr && cargo watch -x run"
+    depends_on:
+      - db
+    volumes:
+      - "./Cargo.toml:/work/Cargo.toml"
+      - "./Cargo.lock:/work/Cargo.lock"
+      - "./db:/work/db"
+      - "./health:/work/health"
+      - "./utils:/work/utils"
+      - "./hospital:/work/hospital"
+      - "./pcr:/work/pcr"
+      - "./keys:/work/keys"
+      - "./proto:/work/proto"
+    environment:
+      rust_env: prod
+      db_username: fox
+      db_password: flyingfox
+      db_host: db
+      db_port: 5432
+      db_name: covid
+    ports:
+      - 9090:9090
