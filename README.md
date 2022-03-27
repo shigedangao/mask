@@ -1,5 +1,7 @@
 # Mask 😷
 
+[![tests](https://github.com/shigedangao/mask/actions/workflows/test.yaml/badge.svg)](https://github.com/shigedangao/mask/actions/workflows/test.yaml)
+
 This project is a playground to learn gRPC. This repo contain 2 services which is used by the [graphie repo](https://github.com/shigedangao/graphie) to expose French's covid data.
 
 # Data uses
@@ -28,7 +30,7 @@ Data comes from the website [data.gouv.fr](https://data.gouv.fr/). I also used d
 
 ### Docker
 
-For docker user. You only need to generate TLS key by using the `generate.sh` script. See the [section](#tls-certificate). Once done you can use podman or docker-compose to bootstrap the project ```docker-compose up -d```
+For docker user use the command ```docker-compose up -d```
 
 ### Manual installation
 
@@ -53,35 +55,9 @@ These project run in a Kubernetes cluster. As a result we need to configure a he
 ./grpc_health_probe -addr=127.0.0.1:5601 -service=healthcheck.HealthService
 ```
 
-## TLS certificate
-
-These services uses self-signed certificate. These certificate & key can be generate by using the `generator.sh` bash script. Before running. You must change the subject in the `generator.sh`. The services will uses the `server-cert.pem` & `server-key.key`. Below is an example
-
-```diff
-- openssl req -x509 -newkey rsa:4096 -days 365 -keyout keys/ca-key.pem -out keys/ca-cert.pem -subj "[replace]"
-+ openssl req -x509 -newkey rsa:4096 -days 365 -keyout keys/ca-key.pem -out keys/ca-cert.pem -subj "/C=FR/ST=Ile-de-france/L=Paris/O=foo/OU=bar/CN=toto/emailAddress=foo@gmail.com"
-
-- openssl req -newkey rsa:4096 -keyout keys/server-key.pem -out keys/server-req.pem -subj "[replace]"
-+ openssl req -newkey rsa:4096 -keyout keys/server-key.pem -out keys/server-req.pem -subj "/C=FR/ST=Ile-de-france/L=Paris/O=foo/OU=bar/CN=tata/emailAddress=foo@gmail.com"
-```
-
 ## Test gRPC server with bloom rpc
 
-To test the gRPC server. It's recommended to use [bloom rpc](https://github.com/bloomrpc/bloomrpc). Because we're running in secure mode. You may refer to the configuration below for the TLS configuration of bloomrpc
-
-<p align="center">
-  <img src="bloom.png" />
-</p>
-
-## Using grpcurl
-
-Should you want to use [grpcurl](https://github.com/fullstorydev/grpcurl). You may refer to the example below:
-
-```bash
-./grpcurl -cacert <path to ca cert>/ca-cert.pem \
-    -d '{"day": 19, "month": 10, "year": 2021}' \
-    <endpoint>:9000 icu.IcuService/getFranceIcuLevelForNonVaxx
-```
+To test the gRPC server. It's recommended to use [bloom rpc](https://github.com/bloomrpc/bloomrpc).
 
 ## Unit test
 

@@ -104,7 +104,7 @@ fn get_connection_uri(filepath: &str) -> Result<String, DBError> {
     // return dev otherwise
     // if error load production var
     build_dev_database_uri(filepath)
-        .or(build_database_uri_from_env())
+        .or_else(|_| build_database_uri_from_env())
 }
 
 /// Create a connection handler with the targeted database
@@ -117,6 +117,8 @@ pub async fn connect(filepath: &str) -> Result<Pool<Postgres>, DBError> {
         .max_connections(MAX_CONNECTIONS)
         .connect(&database_uri)
         .await?;
+
+    info!("DB Connection success");
 
     Ok(pool)
 }

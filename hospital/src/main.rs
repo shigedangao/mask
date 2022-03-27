@@ -1,13 +1,13 @@
-use tonic::transport::{Server, Identity, ServerTlsConfig};
+use tonic::transport::Server;
 use std::sync::Arc;
 
 #[macro_use]
 extern crate log;
 
 mod hospital;
-mod err;
 mod mix;
 mod icu;
+mod common;
 
 use hospital::proto_newcase::case_service_server::CaseServiceServer;
 use hospital::proto_hospital::care_status_server::CareStatusServer;
@@ -28,14 +28,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_pool = db::connect("../config.toml").await?;
     let db_handle = Arc::new(db_pool);
     
-    // load tls certificate
-    let (cert, key) = utils::get_certificates()?; 
-    let identity = Identity::from_pem(cert, key);
-
     // setup the server
     let addr = utils::get_server_addr(9000).parse()?;
     let server = Server::builder()
-        .tls_config(ServerTlsConfig::new().identity(identity))?
         .add_service(CareStatusServer::new(CareService{
             pool: Arc::clone(&db_handle)
         }))

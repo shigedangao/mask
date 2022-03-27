@@ -4,8 +4,11 @@ use tonic::{Request, Response, Status};
 use std::sync::Arc;
 use db::PGPool;
 use db::query;
-use utils::Date;
-use crate::err::MaskErr;
+use utils::{
+    Date,
+    err::MaskErr
+};
+use crate::common::proto_common::CommonInput;
 
 // import generated struct by tonic
 use super::proto_newcase::{CaseInput, NewCases, CaseResult};
@@ -31,20 +34,6 @@ impl TryFrom<PgRow> for CaseResult {
     }
 }
 
-impl Date for CaseInput {
-    fn get_year(&self) -> i32 {
-        self.year
-    }
-
-    fn get_month(&self) -> i32 {
-        self.month
-    }
-
-    fn get_day(&self) -> Option<i32> {
-        self.day
-    }
-}
-
 #[tonic::async_trait]
 impl CaseService for CaseServiceHandle {
     /// Return the number of new case by department.
@@ -58,10 +47,12 @@ impl CaseService for CaseServiceHandle {
         request: Request<CaseInput>
     ) -> Result<Response<NewCases>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(date) => date,
-            None => return Err(MaskErr::InvalidDate.into())
-        };
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+
+        let date: CommonInput = input.date.unwrap().into();
+        let date = date.build_date_sql_like()?;
 
         match query::get_all_by_date_and_gen_field::<CaseResult, String>(
             &self.pool,
@@ -81,6 +72,7 @@ impl CaseService for CaseServiceHandle {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::common::CommonInput;
 
     #[tokio::test]
     async fn expect_grpc_to_return_response() {
@@ -91,9 +83,11 @@ mod tests {
         };
 
         let input = CaseInput {
-            day: Some(12),
-            month: 12,
-            year: 2021,
+            date: Some(CommonInput {
+                day: Some(12),
+                month: 12,
+                year: 2021
+            }),
             department: "77".to_owned()
         };
 
@@ -112,9 +106,11 @@ mod tests {
         };
 
         let input = CaseInput {
-            day: Some(50),
-            month: 12,
-            year: 2021,
+            date: Some(CommonInput {
+                day: Some(50),
+                month: 12,
+                year: 2021,
+            }),
             department: "77".to_owned()
         };
 

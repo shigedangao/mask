@@ -3,9 +3,11 @@ use db::{PGPool, query};
 use sqlx::postgres::PgRow;
 use sqlx::Row;
 use tonic::{Request, Response, Status};
-use utils::Date;
-use crate::err::MaskErr;
-
+use utils::{
+    Date,
+    err::MaskErr
+};
+use crate::common::proto_common::CommonInput;
 use super::proto_hospital::{
     level_service_server::LevelService,
     LevelInput,
@@ -47,20 +49,6 @@ impl TryFrom<PgRow> for LevelResult {
     }
 }
 
-impl Date for LevelInput {
-    fn get_year(&self) -> i32 {
-        self.year
-    }
-
-    fn get_month(&self) -> i32 {
-        self.month
-    }
-
-    fn get_day(&self) -> Option<i32> {
-        self.day
-    }
-}
-
 #[tonic::async_trait]
 impl LevelService for LevelHandler {
     async fn get_hospital_level_by_department(
@@ -68,10 +56,12 @@ impl LevelService for LevelHandler {
         request: Request<LevelInput>
     ) -> Result<Response<LevelOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(date) => date,
-            None => return Err(MaskErr::InvalidDate.into())
-        };
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+
+        let date: CommonInput = input.date.unwrap().into();
+        let date = date.build_date_sql_like()?;
 
         match query::get_all_by_date_and_gen_field::<LevelResult, String>(
             &self.pool,
@@ -91,6 +81,7 @@ impl LevelService for LevelHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::common::CommonInput;
 
     #[tokio::test]
     async fn expect_grpc_to_return_response() {
@@ -101,9 +92,11 @@ mod tests {
         };
 
         let input = LevelInput {
-            day: Some(8),
-            month: 1,
-            year: 2022,
+            date: Some(CommonInput {
+                day: Some(8),
+                month: 1,
+                year: 2022,
+            }),
             department: "77".to_owned()
         };
 
@@ -122,9 +115,11 @@ mod tests {
         };
 
         let input = LevelInput {
-            day: None,
-            month: 1,
-            year: 2022,
+            date: Some(CommonInput {
+                day: None,
+                month: 1,
+                year: 2022,
+            }),
             department: "77".to_owned()
         };
 

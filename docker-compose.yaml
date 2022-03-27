@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: fox
       POSTGRES_DB: covid
     ports:
-      - "5500:5432"
+      - "5432:5432"
     volumes:
        - "./dev/dbdata:/var/lib/postgresql/data"
 
@@ -51,8 +51,6 @@ services:
       - "./proto:/work/proto"
     environment:
       rust_env: prod
-      server_cert: ../keys/server-cert.pem
-      server_key: ../keys/server-key.key
       db_username: fox
       db_password: flyingfox
       db_host: db
@@ -80,8 +78,6 @@ services:
       - "./proto:/work/proto"
     environment:
       rust_env: prod
-      server_cert: ../keys/server-cert.pem
-      server_key: ../keys/server-key.key
       db_username: fox
       db_password: flyingfox
       db_host: db

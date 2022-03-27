@@ -1,4 +1,4 @@
-use tonic::transport::{Server, Identity, ServerTlsConfig};
+use tonic::transport::Server;
 use std::sync::Arc;
 
 #[macro_use]
@@ -6,7 +6,7 @@ extern crate log;
 
 mod pcr;
 mod positivity;
-mod err;
+mod common;
 
 use pcr::{
     polymerase::PcrServiceHandle,
@@ -25,13 +25,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let db_pool = db::connect("../config.toml").await?;
     let db_handle = Arc::new(db_pool);
 
-    // load tls certificate
-    let (cert, key) = utils::get_certificates()?;
-    let identity = Identity::from_pem(cert, key);
-
     let addr = utils::get_server_addr(9090).parse()?;
     let server = Server::builder()
-        .tls_config(ServerTlsConfig::new().identity(identity))?
         .add_service(PcrServiceServer::new(PcrServiceHandle {
             pool: Arc::clone(&db_handle)
         }))
@@ -42,6 +37,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Starting the server port 9090 & Healthcheck server port 5601");
     tokio::try_join!(server, health::run_health_server())?;
+    //tokio::try_join!(server)?;
 
     Ok(())
 }

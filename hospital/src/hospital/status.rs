@@ -5,9 +5,11 @@ use sqlx::{
 };
 use tonic::{Request, Response, Status};
 use db::{PGPool, query};
-use utils::Date;
-use crate::err::MaskErr;
-
+use utils::{
+    Date,
+    err::MaskErr
+};
+use crate::common::proto_common::CommonInput;
 use super::proto_hospital::{CareStatusResult, CareStatusInput, CareStatusOutput};
 use super::proto_hospital::care_status_server::CareStatus;
 
@@ -38,20 +40,6 @@ impl TryFrom<PgRow> for CareStatusResult {
     }
 }
 
-impl Date for CareStatusInput {
-    fn get_year(&self) -> i32 {
-        self.year
-    }
-
-    fn get_month(&self) -> i32 {
-        self.month
-    }
-
-    fn get_day(&self) -> Option<i32> {
-        self.day
-    }
-}
-
 #[tonic::async_trait]
 impl CareStatus for CareService {
     /// Return the number of case in hospital for a date and a region
@@ -65,10 +53,12 @@ impl CareStatus for CareService {
         request: Request<CareStatusInput>
     ) -> Result<Response<CareStatusOutput>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(date) => date,
-            None => return Err(MaskErr::InvalidDate.into())
-        };
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+
+        let date: CommonInput = input.date.unwrap().into();
+        let date = date.build_date_sql_like()?;
 
         match query::get_all_by_date_and_gen_field::<CareStatusResult, i32>(
             &self.pool,
@@ -88,7 +78,8 @@ impl CareStatus for CareService {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use super::super::common::CommonInput;
+    
     #[tokio::test]
     async fn expect_grpc_to_return_response() {
         let pool = db::connect("../config.toml").await.unwrap();
@@ -98,9 +89,11 @@ mod tests {
         };
 
         let input = CareStatusInput {
-            day: Some(12),
-            month: 12,
-            year: 2021,
+            date: Some(CommonInput {
+                day: Some(12),
+                month: 12,
+                year: 2021,
+            }),
             region: 11 
         };
 
@@ -119,9 +112,11 @@ mod tests {
         };
 
         let input = CareStatusInput {
-            day: None,
-            month: 32,
-            year: 2021,
+            date: Some(CommonInput {
+                day: None,
+                month: 32,
+                year: 2021,
+            }),
             region: 11 
         };
 

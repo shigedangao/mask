@@ -2,7 +2,11 @@ use std::sync::Arc;
 use db::{PGPool, query};
 use sqlx::{postgres::PgRow, Row};
 use tonic::{Request, Response, Status};
-use crate::err::PcrErr;
+use utils::{
+    Date,
+    err::MaskErr
+};
+use crate::common::proto_common::CommonInput;
 use super::proto::{
     positivity_rate_server::PositivityRate,
     PositivityInput,
@@ -10,24 +14,9 @@ use super::proto::{
     PositivityDayResult,
     PositivityWeekCollection
 };
-use utils::Date;
 
 pub struct PosServiceHandle {
     pub pool: Arc<PGPool>
-}
-
-impl Date for PositivityInput {
-    fn get_year(&self) -> i32 {
-        self.year
-    }
-
-    fn get_month(&self) -> i32 {
-        self.month
-    }
-
-    fn get_day(&self) -> Option<i32> {
-        self.day
-    }
 }
 
 impl TryFrom<PgRow> for PositivityDayResult {
@@ -58,10 +47,12 @@ impl PositivityRate for PosServiceHandle {
         request: Request<PositivityInput>
     ) -> Result<Response<PositivityCollection>, Status> {
         let input = request.into_inner();
-        let date = match input.build_date_sql_like() {
-            Some(d) => d,
-            None => return Err(PcrErr::InvalidDate.into())
-        };
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+
+        let date: CommonInput = input.date.unwrap().into();
+        let date = date.build_date_sql_like()?;
 
         match query::get_all_by_date_and_gen_field::<PositivityDayResult, &str>(
             &self.pool,
@@ -72,7 +63,7 @@ impl PositivityRate for PosServiceHandle {
             Ok(rates) => Ok(Response::new(PositivityCollection { rates })),
             Err(err) => {
                 error!("fetch positivity cases {:?}", err);
-                Err(PcrErr::QueryError("positivity per day".into()).into())
+                Err(MaskErr::QueryError("positivity per day".into()).into())
             }
         }
     }
@@ -89,16 +80,21 @@ impl PositivityRate for PosServiceHandle {
         request: Request<PositivityInput>
     ) -> Result<Response<PositivityWeekCollection>, Status> {
         let input = request.into_inner();
-        let dates = match input.get_previous_seven_date_from_day() {
+        if input.date.is_none() {
+            return Err(MaskErr::MissingDate.into());
+        }
+
+        let date: CommonInput = input.date.unwrap().into();
+        let dates = match date.get_previous_seven_date_from_day() {
             Some(d) => d,
-            None => return Err(PcrErr::InvalidDate.into())
+            None => return Err(MaskErr::InvalidDate.into())
         };
 
         let res = match get_positivity_for_week(&self.pool, dates, &input.department).await {
             Ok(res) => res,
             Err(err) => {
                 error!("fetch positivity cases per week {:?}", err);
-                return Err(PcrErr::QueryError("positivity cases per week".into()).into());
+                return Err(MaskErr::QueryError("positivity cases per week".into()).into());
             }
         };
 
@@ -116,7 +112,7 @@ impl PositivityRate for PosServiceHandle {
 /// * `pool` - &PGPool
 /// * `dates` - Vec<String>
 /// * `department` - &str
-async fn get_positivity_for_week(pool: &PGPool, dates: Vec<String>, department: &str) -> Result<Vec<PositivityDayResult>, PcrErr> {
+async fn get_positivity_for_week(pool: &PGPool, dates: Vec<String>, department: &str) -> Result<Vec<PositivityDayResult>, MaskErr> {
     let mut rates = Vec::new();
     for date in dates.iter() {
         // @Warning
@@ -157,6 +153,7 @@ fn calculate_positivity_per_week(cases: &[PositivityDayResult]) -> f64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::positivity::common::CommonInput;
 
     #[tokio::test]
     async fn expect_grpc_to_return_positivity_per_day_ok() {
@@ -165,9 +162,11 @@ mod tests {
         let service = PosServiceHandle { pool: Arc::clone(&pool_arc) };
         
         let input = PositivityInput {
-            day: Some(10),
-            month: 12,
-            year: 2021,
+            date: Some(CommonInput {
+                day: Some(10),
+                month: 12,
+                year: 2021
+            }),
             department: "94".to_owned()
         };
 
@@ -184,9 +183,11 @@ mod tests {
         let service = PosServiceHandle { pool: Arc::clone(&pool_arc) };
         
         let input = PositivityInput {
-            day: None,
-            month: 30,
-            year: 2021,
+            date: Some(CommonInput {
+                day: None,
+                month: 30,
+                year: 2021
+            }),
             department: "94".to_owned()
         };
 
@@ -203,9 +204,11 @@ mod tests {
         let service = PosServiceHandle { pool: Arc::clone(&pool_arc) };
         
         let input = PositivityInput {
-            day: Some(10),
-            month: 12,
-            year: 2021,
+            date: Some(CommonInput {
+                day: Some(10),
+                month: 12,
+                year: 2021
+            }),
             department: "94".to_owned()
         };
 
@@ -222,9 +225,11 @@ mod tests {
         let service = PosServiceHandle { pool: Arc::clone(&pool_arc) };
         
         let input = PositivityInput {
-            day: None,
-            month: 12,
-            year: 2021,
+            date: Some(CommonInput {
+                day: None,
+                month: 12,
+                year: 2021
+            }),
             department: "80".to_owned()
         };
 
